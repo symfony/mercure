@@ -27,6 +27,10 @@
     "extra": {
         "branch-alias": {
             "dev-master": "1.0.x-dev"
+        },
+        "thanks": {
+            "name": "dunglas/mercure",
+            "url": "https://github.com/dunglas/mercure"
         }
     },
     "config": {
