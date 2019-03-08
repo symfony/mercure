@@ -27,12 +27,16 @@
     "extra": {
         "branch-alias": {
             "dev-master": "1.0.x-dev"
+        },
+        "thanks": {
+            "name": "dunglas/mercure",
+            "url": "https://github.com/dunglas/mercure"
         }
     },
     "config": {
         "sort-packages": true
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "^4.1"
+        "symfony/phpunit-bridge": "^4.2.4"
     }
 }
