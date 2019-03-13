@@ -87,21 +87,6 @@ final class Publisher
         return sprintf('%s=%s', $key, urlencode($value));
     }
 
-    private function publish(string $url, string $jwt, string $postData): string
-    {
-        $result = @file_get_contents($this->hubUrl, false, stream_context_create(['http' => [
-            'method' => 'POST',
-            'header' => "Content-type: application/x-www-form-urlencoded\r\nAuthorization: Bearer $jwt",
-            'content' => $postData,
-        ]]));
-
-        if (false === $result) {
-            throw new \RuntimeException(sprintf('Unable to publish the update to the Mercure hub: %s', error_get_last()['message'] ?? 'unknown error'));
-        }
-
-        return $result;
-    }
-
     /**
      * Regex ported from Windows Azure Active Directory IdentityModel Extensions for .Net.
      *
