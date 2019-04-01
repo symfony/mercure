@@ -1,7 +1,6 @@
 parameters:
 	autoload_files:
-		- vendor/bin/.phpunit/phpunit-6.5/vendor/autoload.php
-	ignoreErrors:
-		# Intended
-		- '#Parameter \#1 \$topics of class Symfony\\Component\\Mercure\\Update constructor expects array\|string, int given\.#'
-
+		- vendor/autoload.php
+	excludes_analyse:
+		- %currentWorkingDirectory%/tests
+		- %currentWorkingDirectory%/vendor
