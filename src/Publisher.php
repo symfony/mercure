@@ -32,7 +32,7 @@ final class Publisher
     private $httpClient;
 
     /**
-     * @param callable(): string                            $jwtProvider
+     * @param callable(): string       $jwtProvider
      * @param null|HttpClientInterface $httpClient
      */
     public function __construct(string $hubUrl, callable $jwtProvider, HttpClientInterface $httpClient = null)
@@ -58,7 +58,7 @@ final class Publisher
 
         return $this->httpClient->request('POST', $this->hubUrl, [
             'auth_bearer' => $jwt,
-            'body' => $this->buildQuery($postData)
+            'body' => $this->buildQuery($postData),
         ])->getContent();
     }
 
