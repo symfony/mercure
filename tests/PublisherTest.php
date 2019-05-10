@@ -27,7 +27,7 @@ class PublisherTest extends TestCase
 {
     const URL = 'https://demo.mercure.rocks/hub';
     const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyJmb28iLCJiYXIiXSwicHVibGlzaCI6WyJmb28iXX19.LRLvirgONK13JgacQ_VbcjySbVhkSmHy3IznH3tA9PM';
-    const AUTH_HEADER = 'Bearer ' . self::JWT;
+    const AUTH_HEADER = 'Bearer '.self::JWT;
 
     public function testPublish()
     {
