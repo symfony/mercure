@@ -13,6 +13,9 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
+use Symfony\Component\HttpClient\NativeHttpClient;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 /**
  * Publishes an update to the hub.
  *
@@ -30,13 +33,13 @@ final class Publisher
 
     /**
      * @param callable(): string                            $jwtProvider
-     * @param null|callable(string, string, string): string $httpClient
+     * @param null|HttpClientInterface $httpClient
      */
-    public function __construct(string $hubUrl, callable $jwtProvider, callable $httpClient = null)
+    public function __construct(string $hubUrl, callable $jwtProvider, ?HttpClientInterface $httpClient = null)
     {
         $this->hubUrl = $hubUrl;
         $this->jwtProvider = $jwtProvider;
-        $this->httpClient = $httpClient ?? [$this, 'publish'];
+        $this->httpClient = $httpClient ?? new NativeHttpClient();
     }
 
     public function __invoke(Update $update): string
@@ -53,7 +56,10 @@ final class Publisher
         $jwt = ($this->jwtProvider)();
         $this->validateJwt($jwt);
 
-        return ($this->httpClient)($this->hubUrl, $jwt, $this->buildQuery($postData));
+        return $this->httpClient->request('POST', $this->hubUrl, [
+            'auth_bearer' => $jwt,
+            'body' => $this->buildQuery($postData)
+        ])->getContent();
     }
 
     /**
@@ -85,21 +91,6 @@ final class Publisher
     {
         // All Mercure's keys are safe, so don't need to be encoded, but it's not a generic solution
         return sprintf('%s=%s', $key, urlencode($value));
-    }
-
-    private function publish(string $url, string $jwt, string $postData): string
-    {
-        $result = @file_get_contents($this->hubUrl, false, stream_context_create(['http' => [
-            'method' => 'POST',
-            'header' => "Content-type: application/x-www-form-urlencoded\r\nAuthorization: Bearer $jwt",
-            'content' => $postData,
-        ]]));
-
-        if (false === $result) {
-            throw new \RuntimeException(sprintf('Unable to publish the update to the Mercure hub: %s', error_get_last()['message'] ?? 'unknown error'));
-        }
-
-        return $result;
     }
 
     /**
