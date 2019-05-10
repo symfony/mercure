@@ -35,7 +35,7 @@ final class Publisher
      * @param callable(): string                            $jwtProvider
      * @param null|HttpClientInterface $httpClient
      */
-    public function __construct(string $hubUrl, callable $jwtProvider, ?HttpClientInterface $httpClient = null)
+    public function __construct(string $hubUrl, callable $jwtProvider, HttpClientInterface $httpClient = null)
     {
         $this->hubUrl = $hubUrl;
         $this->jwtProvider = $jwtProvider;
