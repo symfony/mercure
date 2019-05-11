@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
-use Symfony\Component\HttpClient\NativeHttpClient;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -39,7 +39,7 @@ final class Publisher
     {
         $this->hubUrl = $hubUrl;
         $this->jwtProvider = $jwtProvider;
-        $this->httpClient = $httpClient ?? new NativeHttpClient();
+        $this->httpClient = $httpClient ?? HttpClient::create();
     }
 
     public function __invoke(Update $update): string
