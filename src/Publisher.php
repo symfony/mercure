@@ -33,7 +33,7 @@ final class Publisher
 
     /**
      * @param callable(): string       $jwtProvider
-     * @param null|HttpClientInterface $httpClient
+     * @param HttpClientInterface|null $httpClient
      */
     public function __construct(string $hubUrl, callable $jwtProvider, HttpClientInterface $httpClient = null)
     {
