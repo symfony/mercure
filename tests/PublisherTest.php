@@ -39,14 +39,23 @@ class PublisherTest extends TestCase
             $this->assertSame('POST', $method);
             $this->assertSame(self::URL, $url);
             $this->assertSame(self::AUTH_HEADER, $options['headers']['authorization'][0]);
-            $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21&id=id', $options['body']);
+            $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21&id=id&retry=3', $options['body']);
 
             return new MockResponse('id');
         });
 
         // Set $httpClient to null to dispatch a real update through the demo hub
         $publisher = new Publisher(self::URL, $jwtProvider, $httpClient);
-        $id = $publisher(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!', [], 'id'));
+        $id = $publisher(
+            new Update(
+                'https://demo.mercure.rocks/demo/books/1.jsonld',
+                'Hi from Symfony!',
+                [],
+                'id',
+                null,
+                3
+            )
+        );
 
         $this->assertSame('id', $id);
     }
