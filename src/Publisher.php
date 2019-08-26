@@ -90,7 +90,7 @@ final class Publisher
     private function encode($key, $value): string
     {
         // All Mercure's keys are safe, so don't need to be encoded, but it's not a generic solution
-        return sprintf('%s=%s', $key, urlencode((string)$value));
+        return sprintf('%s=%s', $key, urlencode((string) $value));
     }
 
     /**
