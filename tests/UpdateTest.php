@@ -46,11 +46,10 @@ class UpdateTest extends TestCase
         ];
     }
 
-    /**
-     * @expectedException \InvalidArgumentException
-     */
     public function testInvalidTopic()
     {
+        $this->expectException(\InvalidArgumentException::class);
+
         new Update(1, 'data');
     }
 }
