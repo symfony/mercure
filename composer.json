@@ -37,7 +37,11 @@
     "config": {
         "sort-packages": true
     },
+    "suggest": {
+        "symfony/stopwatch": "Integration with the profiler performances"
+    },
     "require-dev": {
-        "symfony/phpunit-bridge": "^4.2.4|^5.0"
+        "symfony/phpunit-bridge": "^4.2.4|^5.0",
+        "symfony/stopwatch": "^4.3|^5.0"
     }
 }
