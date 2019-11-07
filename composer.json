@@ -17,7 +17,7 @@
     ],
     "require": {
         "php": "^7.1.3",
-        "symfony/http-client": "^4.3"
+        "symfony/http-client": "^4.3.5|^5.0"
     },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Mercure\\": "src/" }
@@ -38,6 +38,6 @@
         "sort-packages": true
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "^4.2.4"
+        "symfony/phpunit-bridge": "^4.2.4|^5.0"
     }
 }
