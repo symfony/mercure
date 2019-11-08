@@ -27,7 +27,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.0.x-dev"
+            "dev-master": "0.3.x-dev"
         },
         "thanks": {
             "name": "dunglas/mercure",
@@ -43,5 +43,6 @@
     "require-dev": {
         "symfony/phpunit-bridge": "^4.2.4|^5.0",
         "symfony/stopwatch": "^4.3|^5.0"
-    }
+    },
+    "minimum-stability": "dev"
 }
