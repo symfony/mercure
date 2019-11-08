@@ -25,15 +25,14 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *
  * @experimental
  */
-final class Publisher
+final class Publisher implements PublisherInterface
 {
     private $hubUrl;
     private $jwtProvider;
     private $httpClient;
 
     /**
-     * @param callable(): string       $jwtProvider
-     * @param HttpClientInterface|null $httpClient
+     * @param callable(): string $jwtProvider
      */
     public function __construct(string $hubUrl, callable $jwtProvider, HttpClientInterface $httpClient = null)
     {
