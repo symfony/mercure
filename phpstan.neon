@@ -1,7 +1,7 @@
 parameters:
 	inferPrivatePropertyTypeFromConstructor: true
 	autoload_files:
-		- vendor/bin/.phpunit/phpunit-7.4/vendor/autoload.php
+		- vendor/bin/.phpunit/phpunit-8.3-0/vendor/autoload.php
 	ignoreErrors:
 		# Intended
 		- '#Parameter \#1 \$topics of class Symfony\\Component\\Mercure\\Update constructor expects array\|string, int given\.#'
