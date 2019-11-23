@@ -1,4 +1,5 @@
 parameters:
+	inferPrivatePropertyTypeFromConstructor: true
 	autoload_files:
 		- vendor/bin/.phpunit/phpunit-7.4/vendor/autoload.php
 	ignoreErrors:
