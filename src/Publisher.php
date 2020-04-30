@@ -52,7 +52,7 @@ final class Publisher implements PublisherInterface
             'retry' => $update->getRetry(),
         ];
 
-        $jwt = ($this->jwtProvider)();
+        $jwt = ($this->jwtProvider)($update->getTargets());
         $this->validateJwt($jwt);
 
         return $this->httpClient->request('POST', $this->hubUrl, [
