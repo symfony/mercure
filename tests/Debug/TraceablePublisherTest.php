@@ -24,7 +24,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 final class TraceablePublisherTest extends TestCase
 {
-    const URL = 'https://demo.mercure.rocks/hub';
+    const URL = 'https://demo.mercure.rocks/.well-known/mercure';
     const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyJmb28iLCJiYXIiXSwicHVibGlzaCI6WyJmb28iXX19.LRLvirgONK13JgacQ_VbcjySbVhkSmHy3IznH3tA9PM';
 
     public function testPublish(): void
