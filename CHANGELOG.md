@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.4.0
+-----
+
+* Compatibility with Mercure 0.10
+
 0.3.0
 -----
 

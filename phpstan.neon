@@ -1,9 +1,9 @@
 parameters:
+	level: 5
+	paths:
+		- src
+		- tests
 	inferPrivatePropertyTypeFromConstructor: true
+	treatPhpDocTypesAsCertain: false
 	autoload_files:
 		- vendor/bin/.phpunit/phpunit-8.3-0/vendor/autoload.php
-	ignoreErrors:
-		# Intended
-		- '#Parameter \#1 \$topics of class Symfony\\Component\\Mercure\\Update constructor expects array\|string, int given\.#'
-		# False positive
-		- '#Result of && is always false\.#'

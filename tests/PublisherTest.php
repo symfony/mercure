@@ -26,7 +26,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 class PublisherTest extends TestCase
 {
     const URL = 'https://demo.mercure.rocks/.well-known/mercure';
-    const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyJmb28iLCJiYXIiXSwicHVibGlzaCI6WyJmb28iXX19.LRLvirgONK13JgacQ_VbcjySbVhkSmHy3IznH3tA9PM';
+    const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyIqIl0sInB1Ymxpc2giOlsiKiJdfX0.M1yJUov4a6oLrigTqBZQO_ohWUsg3Uz1bnLD4MIyWLo';
     const AUTH_HEADER = 'Authorization: Bearer '.self::JWT;
 
     public function testPublish()
@@ -39,7 +39,7 @@ class PublisherTest extends TestCase
             $this->assertSame('POST', $method);
             $this->assertSame(self::URL, $url);
             $this->assertSame(self::AUTH_HEADER, $options['normalized_headers']['authorization'][0]);
-            $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21&id=id&retry=3', $options['body']);
+            $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21&private=on&id=id&retry=3', $options['body']);
 
             return new MockResponse('id');
         });
@@ -50,7 +50,7 @@ class PublisherTest extends TestCase
             new Update(
                 'https://demo.mercure.rocks/demo/books/1.jsonld',
                 'Hi from Symfony!',
-                [],
+                true,
                 'id',
                 null,
                 3
