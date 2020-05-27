@@ -32,7 +32,7 @@ final class Publisher implements PublisherInterface
     private $httpClient;
 
     /**
-     * @param callable(): string $jwtProvider
+     * @param callable(Update $update): string $jwtProvider
      */
     public function __construct(string $hubUrl, callable $jwtProvider, HttpClientInterface $httpClient = null)
     {
@@ -46,7 +46,7 @@ final class Publisher implements PublisherInterface
         $postData = [
             'topic' => $update->getTopics(),
             'data' => $update->getData(),
-            'target' => $update->getTargets(),
+            'private' => $update->isPrivate() ? 'on' : null,
             'id' => $update->getId(),
             'type' => $update->getType(),
             'retry' => $update->getRetry(),

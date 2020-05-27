@@ -26,7 +26,7 @@ use Symfony\Component\Mercure\Update;
 
 $publisher = new Publisher(HUB_URL, new StaticJwtProvider(JWT));
 // Serialize the update, and dispatch it to the hub, that will broadcast it to the clients
-$id = $publisher(new Update('https://example.com/books/1.jsonld', 'Hi from Symfony!', ['target1', 'target2']));
+$id = $publisher(new Update('https://example.com/books/1.jsonld', 'Hi from Symfony!'));
 ```
 
 Resources

@@ -36,7 +36,7 @@ final class TraceablePublisherTest extends TestCase
         $update = new Update(
             'https://demo.mercure.rocks/demo/books/1.jsonld',
             'Hi from Symfony!',
-            [],
+            false,
             'id',
             null,
             3

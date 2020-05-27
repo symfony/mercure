@@ -27,7 +27,7 @@ final class Update
 {
     private $topics;
     private $data;
-    private $targets;
+    private $private;
     private $id;
     private $type;
     private $retry;
@@ -35,7 +35,7 @@ final class Update
     /**
      * @param array|string $topics
      */
-    public function __construct($topics, string $data, array $targets = [], string $id = null, string $type = null, int $retry = null)
+    public function __construct($topics, string $data = '', bool $private = false, string $id = null, string $type = null, int $retry = null)
     {
         if (!\is_array($topics) && !\is_string($topics)) {
             throw new \InvalidArgumentException('$topics must be an array of strings or a string');
@@ -43,7 +43,7 @@ final class Update
 
         $this->topics = (array) $topics;
         $this->data = $data;
-        $this->targets = $targets;
+        $this->private = $private;
         $this->id = $id;
         $this->type = $type;
         $this->retry = $retry;
@@ -59,9 +59,9 @@ final class Update
         return $this->data;
     }
 
-    public function getTargets(): array
+    public function isPrivate(): bool
     {
-        return $this->targets;
+        return $this->private;
     }
 
     public function getId(): ?string
