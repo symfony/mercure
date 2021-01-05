@@ -16,8 +16,8 @@ namespace Symfony\Component\Mercure;
 /**
  * Represents an update to send to the hub.
  *
- * @see https://github.com/dunglas/mercure/blob/master/spec/mercure.md#hub
- * @see https://github.com/dunglas/mercure/blob/master/hub/update.go
+ * @see https://github.com/dunglas/mercure/blob/main/spec/mercure.md#hub
+ * @see https://github.com/dunglas/mercure/blob/main/update.go
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  *
