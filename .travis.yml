@@ -6,10 +6,16 @@ jobs:
     - php: '7.2'
     - php: '7.3'
     - php: '7.4'
-      env: lint=1
+      env:
+        - lint=1
+        - test_jwt=yes
     - php: '7.4'
-      env: deps=low
-    - php: '8.0snapshot'
+      env:
+        - deps=low
+        - test_jwt=yes
+    - php: '8.0'
+      env:
+        - test_jwt=yes
 
 cache:
   directories:
@@ -23,6 +29,10 @@ before_script:
   - phpenv config-rm xdebug.ini
 
 install:
+  - if [[ $test_jwt != 'yes' ]]; then
+      composer remove --no-update --dev lcobucci/jwt;
+    fi
+
   - if [[ $deps = 'low' ]]; then
       composer update --prefer-dist --no-progress --no-suggest --prefer-stable --prefer-lowest --ansi;
     else

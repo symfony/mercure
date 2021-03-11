@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+0.5.0
+-----
+
+* added `Symfony\Component\Mercure\Jwt\TokenProviderInterface`
+* added `Symfony\Component\Mercure\Jwt\TokenFactoryInterface`
+* added `Symfony\Component\Mercure\Jwt\StaticTokenProvider`
+* added `Symfony\Component\Mercure\Jwt\CallabkeTokenProvider`
+* added `Symfony\Component\Mercure\Jwt\LcobucciTokenFactory`
+* added `Symfony\Component\Mercure\Jwt\FactoryTokenProvider`
+* added `Symfony\Component\Mercure\Messenger\UpdateHandler`
+* added `Symfony\Component\Mercure\Hub`
+* deprecated `Jwt\StaticJwtProvider`, use `Jwt\StaticTokenProvider` instead.
+* deprecated passing a url and a callable jwt provider to `Publisher::__construct`, pass a `Hub` instance instead.
+* deprecated `PublisherInterface::__invoke` method in favor of `PublisherInterface::publish`.
+
 0.4.1
 -----
 

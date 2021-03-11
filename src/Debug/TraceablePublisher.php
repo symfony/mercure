@@ -39,9 +39,20 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
 
     public function __invoke(Update $update): string
     {
+        trigger_deprecation('symfony/mercure', '0.5', 'Method "%s()" is deprecated, use "%s::publish()" instead.', __METHOD__, __CLASS__);
+
+        return $this->publish($update);
+    }
+
+    public function publish(Update $update): string
+    {
         $this->stopwatch->start(__CLASS__);
 
-        $content = ($this->publisher)($update);
+        if (method_exists($this->publisher, 'publish')) {
+            $content = $this->publisher->publish($update);
+        } else {
+            $content = ($this->publisher)($update);
+        }
 
         $e = $this->stopwatch->stop(__CLASS__);
         $this->messages[] = [
@@ -53,7 +64,7 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
         return $content;
     }
 
-    public function reset()
+    public function reset(): void
     {
         $this->messages = [];
     }
