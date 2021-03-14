@@ -15,6 +15,8 @@ namespace Symfony\Component\Mercure\Tests\Debug;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Debug\TraceablePublisher;
+use Symfony\Component\Mercure\Hub;
+use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Publisher;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -29,10 +31,12 @@ final class TraceablePublisherTest extends TestCase
 
     public function testPublish(): void
     {
-        $publisher = new Publisher(self::URL, function (): string {
-            return self::JWT;
-        });
+        $provider = new StaticTokenProvider(self::JWT);
+        $hub = new Hub(self::URL, $provider);
+
+        $publisher = new Publisher($hub);
         $traceablePublisher = new TraceablePublisher($publisher, new Stopwatch());
+
         $update = new Update(
             'https://demo.mercure.rocks/demo/books/1.jsonld',
             'Hi from Symfony!',
@@ -41,7 +45,7 @@ final class TraceablePublisherTest extends TestCase
             null,
             3
         );
-        $traceablePublisher($update);
+        $traceablePublisher->publish($update);
 
         $this->assertEquals(1, $traceablePublisher->count());
         $this->assertSame($update, $traceablePublisher->getMessages()[0]['object']);

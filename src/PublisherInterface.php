@@ -17,8 +17,13 @@ namespace Symfony\Component\Mercure;
  * @author Vincent Chalamon <vincentchalamon@gmail.com>
  *
  * @experimental
+ *
+ * @method string publish(Update $update)
  */
 interface PublisherInterface
 {
+    /**
+     * @deprecated since 0.5, use {@see PublisherInterface::publish} instead.
+     */
     public function __invoke(Update $update): string;
 }

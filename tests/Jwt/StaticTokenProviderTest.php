@@ -14,15 +14,15 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Tests\Jwt;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Mercure\Jwt\StaticJwtProvider;
+use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 
-class StaticJwtProviderTest extends TestCase
+class StaticTokenProviderTest extends TestCase
 {
     const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZXJjdXJlLXRlc3QiLCJuYW1lIjoiS8OpdmluIER1bmdsYXMiLCJpYXQiOjE1MTYyMzkwMjJ9.n0KvJ31TCswaK7KuHiN22cLzpjC2UT2rhWqhIDprfmA';
 
-    public function testProvider()
+    public function testGetToken()
     {
-        $provider = new StaticJwtProvider(self::JWT);
-        $this->assertSame(self::JWT, $provider());
+        $provider = new StaticTokenProvider(self::JWT);
+        $this->assertSame(self::JWT, $provider->getJwt());
     }
 }

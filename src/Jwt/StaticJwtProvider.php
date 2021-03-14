@@ -13,12 +13,16 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure\Jwt;
 
+trigger_deprecation('symfony/mercure', '0.5', 'Class "%s" is deprecated, use "%s" instead.', StaticJwtProvider::class, StaticTokenProvider::class);
+
 /**
  * Provides a JWT passed as a configuration parameter.
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  *
  * @experimental
+ *
+ * @deprecated
  */
 final class StaticJwtProvider
 {

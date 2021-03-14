@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Mercure\Jwt\CallableTokenProvider;
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * Publishes an update to the hub.
- *
- * Can be used as a Symfony Messenger handler too.
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  *
@@ -27,21 +27,37 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final class Publisher implements PublisherInterface
 {
-    private $hubUrl;
-    private $jwtProvider;
+    private $hub;
     private $httpClient;
 
     /**
-     * @param callable(Update $update): string $jwtProvider
+     * @param Hub                      $hub
+     * @param HttpClientInterface|null $httpClient
      */
-    public function __construct(string $hubUrl, callable $jwtProvider, HttpClientInterface $httpClient = null)
+    public function __construct($hub, $httpClient = null)
     {
-        $this->hubUrl = $hubUrl;
-        $this->jwtProvider = $jwtProvider;
+        if (!$hub instanceof Hub) {
+            trigger_deprecation('symfony/mercure', '0.5', 'Passing a hub url, and a callable to "%s::__construct()" is deprecated, pass a "%s" instance instead.', __CLASS__, Hub::class);
+
+            $hub = new Hub((string) $hub, new CallableTokenProvider($httpClient));
+            $httpClient = \func_get_args()[2] ?? null;
+        }
+
+        $this->hub = $hub;
         $this->httpClient = $httpClient ?? HttpClient::create();
     }
 
     public function __invoke(Update $update): string
+    {
+        trigger_deprecation('symfony/mercure', '0.5', 'Method "%s()" is deprecated, use "%s::publish()" instead.', __METHOD__, __CLASS__);
+
+        return $this->publish($update);
+    }
+
+    /**
+     * Sends $update to the mercure hub.
+     */
+    public function publish(Update $update): string
     {
         $postData = [
             'topic' => $update->getTopics(),
@@ -52,50 +68,23 @@ final class Publisher implements PublisherInterface
             'retry' => $update->getRetry(),
         ];
 
-        $jwt = ($this->jwtProvider)($update);
+        $jwt = $this->hub->getProvider()->getJwt();
         $this->validateJwt($jwt);
 
-        return $this->httpClient->request('POST', $this->hubUrl, [
-            'auth_bearer' => $jwt,
-            'body' => $this->buildQuery($postData),
-        ])->getContent();
-    }
-
-    /**
-     * Similar to http_build_query but doesn't add the brackets in keys for array values and skip null values.
-     */
-    private function buildQuery(array $data): string
-    {
-        $parts = [];
-        foreach ($data as $key => $value) {
-            if (null === $value) {
-                continue;
-            }
-
-            if (\is_array($value)) {
-                foreach ($value as $v) {
-                    $parts[] = $this->encode($key, $v);
-                }
-
-                continue;
-            }
-
-            $parts[] = $this->encode($key, $value);
+        try {
+            return $this->httpClient->request('POST', $this->hub->getUrl(), [
+                'auth_bearer' => $jwt,
+                'body' => Internal\QueryBuilder::build($postData),
+            ])->getContent();
+        } catch (ExceptionInterface $exception) {
+            throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
         }
-
-        return implode('&', $parts);
-    }
-
-    private function encode($key, $value): string
-    {
-        // All Mercure's keys are safe, so don't need to be encoded, but it's not a generic solution
-        return sprintf('%s=%s', $key, urlencode((string) $value));
     }
 
     /**
      * Regex ported from Windows Azure Active Directory IdentityModel Extensions for .Net.
      *
-     * @throws \InvalidArgumentException
+     * @throws Exception\InvalidArgumentException
      *
      * @license MIT
      * @copyright Copyright (c) Microsoft Corporation
@@ -105,7 +94,7 @@ final class Publisher implements PublisherInterface
     private function validateJwt(string $jwt): void
     {
         if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/', $jwt)) {
-            throw new \InvalidArgumentException('The provided JWT is not valid');
+            throw new Exception\InvalidArgumentException('The provided JWT is not valid');
         }
     }
 }
