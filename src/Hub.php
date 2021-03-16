@@ -24,16 +24,23 @@ final class Hub
 {
     private $url;
     private $jwtProvider;
+    private $publicUrl;
 
-    public function __construct(string $url, TokenProviderInterface $jwtProvider)
+    public function __construct(string $url, TokenProviderInterface $jwtProvider, string $publicUrl = null)
     {
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;
+        $this->publicUrl = $publicUrl;
     }
 
     public function getUrl(): string
     {
         return $this->url;
+    }
+
+    public function getPublicUrl(): string
+    {
+        return $this->publicUrl ?? $this->getUrl();
     }
 
     public function getProvider(): TokenProviderInterface
