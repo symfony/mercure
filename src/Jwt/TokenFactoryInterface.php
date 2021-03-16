@@ -23,9 +23,9 @@ interface TokenFactoryInterface
     /**
      * Create a token that allows publishing to $publish and subscribing to $subscribe.
      *
-     * @param string[] $publish          a list of topics that the token will allow publishing to
      * @param string[] $subscribe        a list of topics that the token will allow subscribing to
+     * @param string[] $publish          a list of topics that the token will allow publishing to
      * @param mixed[]  $additionalClaims an array of additional claims for the JWT
      */
-    public function create(array $publish, array $subscribe, array $additionalClaims = []): string;
+    public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string;
 }

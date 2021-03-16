@@ -27,7 +27,7 @@ final class FactoryTokenProviderTest extends TestCase
         }
 
         $factory = new LcobucciFactory('!ChangeMe!');
-        $provider = new FactoryTokenProvider($factory, ['*'], []);
+        $provider = new FactoryTokenProvider($factory, [], ['*']);
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.TywAqS7IPhvLdP7cXq_U-kXWUVPKFUyYz8NyfRe0vAU',

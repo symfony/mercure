@@ -33,7 +33,7 @@ final class LcobucciFactoryTest extends TestCase
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.TywAqS7IPhvLdP7cXq_U-kXWUVPKFUyYz8NyfRe0vAU',
-            $factory->create(['*'], [])
+            $factory->create([], ['*'])
         );
     }
 
