@@ -6,4 +6,4 @@ parameters:
 	inferPrivatePropertyTypeFromConstructor: true
 	treatPhpDocTypesAsCertain: false
 	autoload_files:
-		- vendor/bin/.phpunit/phpunit-8.3-0/vendor/autoload.php
+		- vendor/bin/.phpunit/phpunit/vendor/autoload.php
