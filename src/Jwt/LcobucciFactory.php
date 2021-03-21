@@ -45,7 +45,7 @@ final class LcobucciFactory implements TokenFactoryInterface
     public function __construct(string $secret, string $algorithm = 'hmac.sha256')
     {
         if (!\array_key_exists($algorithm, self::SIGN_ALGORITHMS)) {
-            throw InvalidArgumentException::forInvalidAlgorithm($algorithm, \array_keys(self::SIGN_ALGORITHMS));
+            throw InvalidArgumentException::forInvalidAlgorithm($algorithm, array_keys(self::SIGN_ALGORITHMS));
         }
 
         $signerClass = self::SIGN_ALGORITHMS[$algorithm];

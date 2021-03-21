@@ -18,7 +18,7 @@ use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 
 class StaticTokenProviderTest extends TestCase
 {
-    const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZXJjdXJlLXRlc3QiLCJuYW1lIjoiS8OpdmluIER1bmdsYXMiLCJpYXQiOjE1MTYyMzkwMjJ9.n0KvJ31TCswaK7KuHiN22cLzpjC2UT2rhWqhIDprfmA';
+    public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZXJjdXJlLXRlc3QiLCJuYW1lIjoiS8OpdmluIER1bmdsYXMiLCJpYXQiOjE1MTYyMzkwMjJ9.n0KvJ31TCswaK7KuHiN22cLzpjC2UT2rhWqhIDprfmA';
 
     public function testGetToken()
     {

@@ -31,9 +31,9 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  */
 class PublisherTest extends TestCase
 {
-    const URL = 'https://demo.mercure.rocks/.well-known/mercure';
-    const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyIqIl0sInB1Ymxpc2giOlsiKiJdfX0.M1yJUov4a6oLrigTqBZQO_ohWUsg3Uz1bnLD4MIyWLo';
-    const AUTH_HEADER = 'Authorization: Bearer '.self::JWT;
+    public const URL = 'https://demo.mercure.rocks/.well-known/mercure';
+    public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyIqIl0sInB1Ymxpc2giOlsiKiJdfX0.M1yJUov4a6oLrigTqBZQO_ohWUsg3Uz1bnLD4MIyWLo';
+    public const AUTH_HEADER = 'Authorization: Bearer '.self::JWT;
 
     public function testPublish()
     {
