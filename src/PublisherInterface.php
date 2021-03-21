@@ -18,12 +18,8 @@ namespace Symfony\Component\Mercure;
  *
  * @experimental
  *
- * @method string publish(Update $update)
+ * @method string publish(Update $update) Sends $update to the mercure hub.
  */
 interface PublisherInterface
 {
-    /**
-     * @deprecated since 0.5, use {@see PublisherInterface::publish} instead.
-     */
-    public function __invoke(Update $update): string;
 }

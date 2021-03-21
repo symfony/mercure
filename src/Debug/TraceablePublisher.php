@@ -37,6 +37,9 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
         $this->stopwatch = $stopwatch;
     }
 
+    /**
+     * @deprecated since symfony/mercure 0.5
+     */
     public function __invoke(Update $update): string
     {
         trigger_deprecation('symfony/mercure', '0.5', 'Method "%s()" is deprecated, use "%s::publish()" instead.', __METHOD__, __CLASS__);
@@ -51,6 +54,7 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
         if (method_exists($this->publisher, 'publish')) {
             $content = $this->publisher->publish($update);
         } else {
+            trigger_deprecation('symfony/mercure', '0.5', 'Method "%1$s()" is deprecated, implement "%1$s::publish()" instead.', PublisherInterface::class);
             $content = ($this->publisher)($update);
         }
 

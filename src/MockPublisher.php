@@ -29,14 +29,4 @@ final class MockPublisher implements PublisherInterface
     {
         return ($this->callable)($update);
     }
-
-    /**
-     * @deprecated since 0.5, use {@see PublisherInterface::publish} instead.
-     */
-    public function __invoke(Update $update): string
-    {
-        trigger_deprecation('symfony/mercure', '0.5', 'Method "%s()" is deprecated, use "%s::publish()" instead.', __METHOD__, __CLASS__);
-
-        return ($this->callable)($update);
-    }
 }

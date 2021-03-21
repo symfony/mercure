@@ -47,6 +47,9 @@ final class Publisher implements PublisherInterface
         $this->httpClient = $httpClient ?? HttpClient::create();
     }
 
+    /**
+     * @deprecated since symfony/mercure 0.5
+     */
     public function __invoke(Update $update): string
     {
         trigger_deprecation('symfony/mercure', '0.5', 'Method "%s()" is deprecated, use "%s::publish()" instead.', __METHOD__, __CLASS__);
@@ -55,7 +58,7 @@ final class Publisher implements PublisherInterface
     }
 
     /**
-     * Sends $update to the mercure hub.
+     * {@inheritdoc}
      */
     public function publish(Update $update): string
     {
