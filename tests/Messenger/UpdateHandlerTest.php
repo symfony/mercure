@@ -42,7 +42,7 @@ final class UpdateHandlerTest extends TestCase
         });
 
         $provider = new StaticTokenProvider(self::JWT);
-        $hub = new Hub('default', self::URL, $provider, null, null, $httpClient);
+        $hub = new Hub(self::URL, $provider, null, null, $httpClient);
         $handler = new UpdateHandler($hub);
 
         $handler(new Update(

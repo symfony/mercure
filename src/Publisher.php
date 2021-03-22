@@ -36,7 +36,7 @@ final class Publisher implements PublisherInterface
     private $httpClient;
 
     /**
-     * @param (callable(Update $update):string)|TokenProviderInterface $jwtProvider
+     * @param TokenProviderInterface|callable(Update $update):string $jwtProvider
      */
     public function __construct(string $hubUrl, $jwtProvider, HttpClientInterface $httpClient = null)
     {

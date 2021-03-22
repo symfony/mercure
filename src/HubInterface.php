@@ -24,11 +24,6 @@ use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 interface HubInterface
 {
     /**
-     * Return the name of this Hub.
-     */
-    public function getName(): string;
-
-    /**
      * Returns the Hub internal URL.
      */
     public function getUrl(): string;

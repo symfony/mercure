@@ -26,7 +26,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final class Hub implements HubInterface
 {
-    private $name;
     private $url;
     private $jwtProvider;
     private $jwtFactory;
@@ -34,27 +33,17 @@ final class Hub implements HubInterface
     private $httpClient;
 
     public function __construct(
-        string $name,
         string $url,
         TokenProviderInterface $jwtProvider,
         TokenFactoryInterface $jwtFactory = null,
         string $publicUrl = null,
         HttpClientInterface $httpClient = null
     ) {
-        $this->name = $name;
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;
         $this->publicUrl = $publicUrl;
         $this->jwtFactory = $jwtFactory;
         $this->httpClient = $httpClient ?? HttpClient::create();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getName(): string
-    {
-        return $this->name;
     }
 
     /**
