@@ -13,38 +13,61 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure\Debug;
 
-use Symfony\Component\Mercure\PublisherInterface;
+use Symfony\Component\Mercure\HubInterface;
+use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
+use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Service\ResetInterface;
 
-trigger_deprecation('symfony/mercure', '0.5', 'Class "%s" is deprecated, use "%s" instead.', TraceablePublisher::class, TraceableHub::class);
-
 /**
  * Traces updates for profiler.
  *
- * @author Vincent Chalamon <vincentchalamon@gmail.com>
+ * @author Saif Eddin Gmati <azjezz@protonmail.com>
  *
  * @experimental
- *
- * @deprecated
  */
-final class TraceablePublisher implements PublisherInterface, ResetInterface
+final class TraceableHub implements HubInterface, ResetInterface
 {
-    private $publisher;
+    private $hub;
     private $stopwatch;
     private $messages = [];
 
-    public function __construct(PublisherInterface $publisher, Stopwatch $stopwatch)
+    public function __construct(HubInterface $hub, Stopwatch $stopwatch)
     {
-        $this->publisher = $publisher;
+        $this->hub = $hub;
         $this->stopwatch = $stopwatch;
     }
 
-    public function __invoke(Update $update): string
+    public function getName(): string
+    {
+        return $this->hub->getName();
+    }
+
+    public function getUrl(): string
+    {
+        return $this->hub->getUrl();
+    }
+
+    public function getPublicUrl(): string
+    {
+        return $this->hub->getPublicUrl();
+    }
+
+    public function getProvider(): TokenProviderInterface
+    {
+        return $this->hub->getProvider();
+    }
+
+    public function getFactory(): ?TokenFactoryInterface
+    {
+        return $this->hub->getFactory();
+    }
+
+    public function publish(Update $update): string
     {
         $this->stopwatch->start(__CLASS__);
-        $content = ($this->publisher)($update);
+        $content = $this->hub->publish($update);
 
         $e = $this->stopwatch->stop(__CLASS__);
         $this->messages[] = [
