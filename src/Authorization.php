@@ -42,7 +42,7 @@ final class Authorization
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
         if (null === $tokenFactory) {
-            throw new InvalidArgumentException(sprintf('The hub "%s" does not contain a token factory.', $hubInstance->getName()));
+            throw new InvalidArgumentException(sprintf('The %s hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
         }
 
         $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
-use Psr\Container\ContainerInterface;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 
 final class HubRegistry
@@ -24,7 +23,7 @@ final class HubRegistry
     /**
      * @param array<string, HubInterface> $hubs An array of hub instances, where the keys are the names
      */
-    public function __construct(string $defaultHub, array $hubs)
+    public function __construct(HubInterface $defaultHub, array $hubs)
     {
         $this->defaultHub = $defaultHub;
         $this->hubs = $hubs;
@@ -32,7 +31,10 @@ final class HubRegistry
 
     public function getHub(string $name = null): HubInterface
     {
-        $name = $name ?? $this->defaultHub;
+        if (null === $name) {
+            return $this->defaultHub;
+        }
+
         if (!isset($this->hubs[$name])) {
             throw new InvalidArgumentException('Invalid hub name provided.');
         }

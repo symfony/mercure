@@ -45,7 +45,7 @@ class HubTest extends TestCase
         });
 
         $provider = new StaticTokenProvider(self::JWT);
-        $hub = new Hub('default', self::URL, $provider, null, null, $httpClient);
+        $hub = new Hub(self::URL, $provider, null, null, $httpClient);
         $id = $hub->publish(new Update(
             'https://demo.mercure.rocks/demo/books/1.jsonld',
             'Hi from Symfony!',
@@ -70,7 +70,7 @@ class HubTest extends TestCase
         });
 
         $provider = new StaticTokenProvider(self::JWT);
-        $hub = new Hub('default', self::URL, $provider, null, null, $httpClient);
+        $hub = new Hub(self::URL, $provider, null, null, $httpClient);
 
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Failed to send an update.');
@@ -91,7 +91,7 @@ class HubTest extends TestCase
         $this->expectExceptionMessage('The provided JWT is not valid');
 
         $provider = new StaticTokenProvider("invalid\r\njwt");
-        $hub = new Hub('default', self::URL, $provider, null, null);
+        $hub = new Hub(self::URL, $provider, null, null);
 
         $hub->publish(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!'));
     }

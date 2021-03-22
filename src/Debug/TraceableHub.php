@@ -39,11 +39,6 @@ final class TraceableHub implements HubInterface, ResetInterface
         $this->stopwatch = $stopwatch;
     }
 
-    public function getName(): string
-    {
-        return $this->hub->getName();
-    }
-
     public function getUrl(): string
     {
         return $this->hub->getUrl();
