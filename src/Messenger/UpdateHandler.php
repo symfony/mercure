@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure\Messenger;
 
+use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\PublisherInterface;
 use Symfony\Component\Mercure\Update;
 
@@ -23,19 +24,22 @@ use Symfony\Component\Mercure\Update;
  */
 final class UpdateHandler
 {
-    private $publisher;
+    private $hub;
 
-    public function __construct(PublisherInterface $publisher)
+    /**
+     * @param HubInterface|PublisherInterface $hub
+     */
+    public function __construct($hub)
     {
-        $this->publisher = $publisher;
+        $this->hub = $hub;
     }
 
     public function __invoke(Update $update): void
     {
-        if (method_exists($this->publisher, 'publish')) {
-            $this->publisher->publish($update);
+        if ($this->hub instanceof HubInterface) {
+            $this->hub->publish($update);
         } else {
-            ($this->publisher)($update);
+            ($this->hub)($update);
         }
     }
 }

@@ -13,17 +13,14 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
+trigger_deprecation('symfony/mercure', '0.5', 'Interface "%s" is deprecated, use "%s" instead.', PublisherInterface::class, HubInterface::class);
+
 /**
  * @author Vincent Chalamon <vincentchalamon@gmail.com>
  *
- * @experimental
- *
- * @method string publish(Update $update)
+ * @deprecated
  */
 interface PublisherInterface
 {
-    /**
-     * @deprecated since 0.5, use {@see PublisherInterface::publish} instead.
-     */
     public function __invoke(Update $update): string;
 }
