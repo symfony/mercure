@@ -18,7 +18,6 @@ use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 
 final class MockHub implements HubInterface
 {
-    private $name;
     private $url;
     private $jwtProvider;
     private $publisher;
@@ -29,7 +28,6 @@ final class MockHub implements HubInterface
      * @param (callable(Update): string) $publisher
      */
     public function __construct(
-        string $name,
         string $url,
         TokenProviderInterface $jwtProvider,
         callable $publisher,
@@ -42,11 +40,6 @@ final class MockHub implements HubInterface
         $this->publisher = $publisher;
         $this->jwtFactory = $jwtFactory;
         $this->publicUrl = $publicUrl;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
     }
 
     public function getUrl(): string
