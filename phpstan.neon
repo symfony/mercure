@@ -5,5 +5,5 @@ parameters:
 		- tests
 	inferPrivatePropertyTypeFromConstructor: true
 	treatPhpDocTypesAsCertain: false
-	autoload_files:
+	bootstrapFiles:
 		- vendor/bin/.phpunit/phpunit/vendor/autoload.php

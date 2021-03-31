@@ -19,10 +19,6 @@ use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 
-if (!class_exists(Key\InMemory::class)) {
-    throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
-}
-
 final class LcobucciFactory implements TokenFactoryInterface
 {
     /**
@@ -44,6 +40,10 @@ final class LcobucciFactory implements TokenFactoryInterface
 
     public function __construct(string $secret, string $algorithm = 'hmac.sha256')
     {
+        if (!class_exists(Key\InMemory::class)) {
+            throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
+        }
+
         if (!\array_key_exists($algorithm, self::SIGN_ALGORITHMS)) {
             throw InvalidArgumentException::forInvalidAlgorithm($algorithm, array_keys(self::SIGN_ALGORITHMS));
         }
