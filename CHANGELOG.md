@@ -4,7 +4,7 @@ CHANGELOG
 0.5.1
 -----
 
-* fix `MockHub::contruct()` signature
+* fix `MockHub::__construct()` signature
 
 0.5.0
 -----
