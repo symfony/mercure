@@ -41,4 +41,12 @@ final class HubRegistry
 
         return $this->hubs[$name];
     }
+
+    /**
+     * @return array<string, HubInterface>
+     */
+    public function all(): array
+    {
+        return $this->hubs;
+    }
 }
