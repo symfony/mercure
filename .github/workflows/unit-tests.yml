@@ -43,7 +43,7 @@ jobs:
           restore-keys: "php-${{ matrix.php-version }}-${{ matrix.operating-system }}"
 
       - name: "removing 'lcobucci/jwt' dependency"
-        if: "${{ matrix.php != '7.4' }} && ${{ matrix.php != '8.0' }}"
+        if: "${{ matrix.php-version != '7.4' }} && ${{ matrix.php-version != '8.0' }}"
         run: "composer remove --no-update --dev lcobucci/jwt"
 
       - name: "installing lowest dependencies"
