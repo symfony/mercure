@@ -43,7 +43,7 @@ final class Authorization
      * @param string|null $hub              the hub to generate the cookie for
      * @param int|null    $cookieLifetime   the lifetime of the cookie, the "exp" claim of the JWT will be set accordingly, set to null to use the default value and to 0 to set a session cookie (the default expiration time of the JWT will be 1 hour)
      */
-    public function createCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null, ?int $cookieLifetime = null): Cookie
+    public function createCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
@@ -51,12 +51,12 @@ final class Authorization
             throw new InvalidArgumentException(sprintf('The "%s" hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
         }
 
+        $cookieLifetime = $this->cookieLifetime;
         if (\array_key_exists('exp', $additionalClaims)) {
-            if (null !== $additionalClaims['exp'] && null === $cookieLifetime) {
+            if (null !== $additionalClaims['exp']) {
                 $cookieLifetime = $additionalClaims['exp'];
             }
         } else {
-            $cookieLifetime = $cookieLifetime ?? $this->cookieLifetime;
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
@@ -65,9 +65,6 @@ final class Authorization
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
 
-        if (null === $cookieLifetime) {
-            $cookieLifetime = $this->cookieLifetime;
-        }
         if (!$cookieLifetime instanceof \DateTimeInterface && 0 !== $cookieLifetime) {
             $cookieLifetime = new \DateTimeImmutable("+{$cookieLifetime} seconds");
         }
