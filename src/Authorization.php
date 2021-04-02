@@ -65,10 +65,17 @@ final class Authorization
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
 
+        if (null === $cookieLifetime) {
+            $cookieLifetime = $this->cookieLifetime;
+        }
+        if (!$cookieLifetime instanceof \DateTimeInterface && 0 !== $cookieLifetime) {
+            $cookieLifetime = new \DateTimeImmutable("+{$cookieLifetime} seconds");
+        }
+
         return Cookie::create(
             self::MERCURE_AUTHORIZATION_COOKIE_NAME,
             $token,
-            $cookieLifetime ?? $this->cookieLifetime,
+            $cookieLifetime,
             $urlComponents['path'] ?? '/',
             $this->getCookieDomain($request, $urlComponents),
             'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
