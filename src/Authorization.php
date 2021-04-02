@@ -23,10 +23,15 @@ final class Authorization
     private const MERCURE_AUTHORIZATION_COOKIE_NAME = 'mercureAuthorization';
 
     private $registry;
+    private $jwtLifetime;
 
-    public function __construct(HubRegistry $registry)
+    /**
+     * @param int|null $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds)
+     */
+    public function __construct(HubRegistry $registry, int $jwtLifetime = null)
     {
         $this->registry = $registry;
+        $this->jwtLifetime = $jwtLifetime;
     }
 
     /**
@@ -43,6 +48,10 @@ final class Authorization
         $tokenFactory = $hubInstance->getFactory();
         if (null === $tokenFactory) {
             throw new InvalidArgumentException(sprintf('The %s hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
+        }
+
+        if (null !== $this->jwtLifetime && !isset($additionalClaims['exp'])) {
+            $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
         }
 
         $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
