@@ -27,6 +27,9 @@ use Symfony\Component\Mercure\Update;
  */
 class AuthorizationTest extends TestCase
 {
+    /**
+     * @requires PHP 7.4
+     */
     public function testJwtLifetime(): void
     {
         $registry = new HubRegistry(new MockHub(
