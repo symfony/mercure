@@ -40,9 +40,9 @@ final class LcobucciFactory implements TokenFactoryInterface
     private $jwtLifetime;
 
     /**
-     * @param int|null $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds)
+     * @param int|null $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
      */
-    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 3600)
+    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = null)
     {
         if (!class_exists(Key\InMemory::class)) {
             throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
@@ -57,7 +57,7 @@ final class LcobucciFactory implements TokenFactoryInterface
             new $signerClass(),
             Key\InMemory::plainText($secret)
         );
-        $this->jwtLifetime = $jwtLifetime;
+        $this->jwtLifetime = $jwtLifetime ?? ((int) ini_get('session.cookie_lifetime') ?: 3600);
     }
 
     /**
