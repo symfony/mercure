@@ -26,7 +26,7 @@ final class FactoryTokenProviderTest extends TestCase
             $this->markTestSkipped('requires lcobucci/jwt:^4.0.');
         }
 
-        $factory = new LcobucciFactory('!ChangeMe!','hmac.sha256', null);
+        $factory = new LcobucciFactory('!ChangeMe!', 'hmac.sha256', null);
         $provider = new FactoryTokenProvider($factory, [], ['*']);
 
         $this->assertSame(
