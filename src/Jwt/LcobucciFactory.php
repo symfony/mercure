@@ -37,8 +37,12 @@ final class LcobucciFactory implements TokenFactoryInterface
     ];
 
     private $configurations;
+    private $jwtLifetime;
 
-    public function __construct(string $secret, string $algorithm = 'hmac.sha256')
+    /**
+     * @param int|null $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds)
+     */
+    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 3600)
     {
         if (!class_exists(Key\InMemory::class)) {
             throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
@@ -53,6 +57,7 @@ final class LcobucciFactory implements TokenFactoryInterface
             new $signerClass(),
             Key\InMemory::plainText($secret)
         );
+        $this->jwtLifetime = $jwtLifetime;
     }
 
     /**
@@ -61,6 +66,10 @@ final class LcobucciFactory implements TokenFactoryInterface
     public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
     {
         $builder = $this->configurations->builder();
+
+        if (null !== $this->jwtLifetime && !isset($additionalClaims['exp'])) {
+            $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
+        }
 
         $additionalClaims['mercure'] = [
             'publish' => $publish,

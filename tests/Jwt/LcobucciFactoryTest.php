@@ -29,7 +29,7 @@ final class LcobucciFactoryTest extends TestCase
 
     public function testCreate(): void
     {
-        $factory = new LcobucciFactory('!ChangeMe!');
+        $factory = new LcobucciFactory('!ChangeMe!','hmac.sha256', null);
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.TywAqS7IPhvLdP7cXq_U-kXWUVPKFUyYz8NyfRe0vAU',

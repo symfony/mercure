@@ -33,10 +33,10 @@ class AuthorizationTest extends TestCase
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
-            new LcobucciFactory('secret')
-        ), []);
+            new LcobucciFactory('secret', 'hmac.sha256', 3600)
+        ));
 
-        $authorization = new Authorization($registry, 3600);
+        $authorization = new Authorization($registry);
         $cookie = $authorization->createCookie(Request::create('https://example.com'));
 
         $payload = json_decode(base64_decode(explode('.', $cookie->getValue())[1], true), true);
