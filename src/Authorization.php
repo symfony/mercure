@@ -48,10 +48,10 @@ final class Authorization
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
         if (null === $tokenFactory) {
-            throw new InvalidArgumentException(sprintf('The %s hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
+            throw new InvalidArgumentException(sprintf('The "%s" hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
         }
 
-        if (array_key_exists('exp', $additionalClaims)) {
+        if (\array_key_exists('exp', $additionalClaims)) {
             if (null !== $additionalClaims['exp'] && null === $cookieLifetime) {
                 $cookieLifetime = $additionalClaims['exp'];
             }
@@ -64,8 +64,6 @@ final class Authorization
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
-
-
 
         return Cookie::create(
             self::MERCURE_AUTHORIZATION_COOKIE_NAME,
