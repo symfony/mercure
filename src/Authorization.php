@@ -41,7 +41,6 @@ final class Authorization
      * @param string[]    $publish          a list of topics that the authorization cookie will allow publishing to
      * @param mixed[]     $additionalClaims an array of additional claims for the JWT
      * @param string|null $hub              the hub to generate the cookie for
-     * @param int|null    $cookieLifetime   the lifetime of the cookie, the "exp" claim of the JWT will be set accordingly, set to null to use the default value and to 0 to set a session cookie (the default expiration time of the JWT will be 1 hour)
      */
     public function createCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
     {
