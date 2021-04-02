@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure\Tests;
 
+use Lcobucci\JWT\Signer\Key\InMemory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Authorization;
@@ -27,11 +28,12 @@ use Symfony\Component\Mercure\Update;
  */
 class AuthorizationTest extends TestCase
 {
-    /**
-     * @requires PHP 7.4
-     */
     public function testJwtLifetime(): void
     {
+        if (!class_exists(InMemory::class)) {
+            $this->markTestSkipped('"lcobucci/jwt" is not installed');
+        }
+
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
