@@ -67,7 +67,7 @@ final class LcobucciFactory implements TokenFactoryInterface
     {
         $builder = $this->configurations->builder();
 
-        if (null !== $this->jwtLifetime && !isset($additionalClaims['exp'])) {
+        if (null !== $this->jwtLifetime && !array_key_exists('exp', $additionalClaims)) {
             $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
         }
 
@@ -82,7 +82,9 @@ final class LcobucciFactory implements TokenFactoryInterface
                     $builder = $builder->permittedFor(...(array) $value);
                     break;
                 case RegisteredClaims::EXPIRATION_TIME:
-                    $builder = $builder->expiresAt($value);
+                    if (null !== $value) {
+                        $builder = $builder->expiresAt($value);
+                    }
                     break;
                 case RegisteredClaims::ISSUED_AT:
                     $builder = $builder->issuedAt($value);
