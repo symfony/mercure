@@ -23,10 +23,15 @@ final class Authorization
     private const MERCURE_AUTHORIZATION_COOKIE_NAME = 'mercureAuthorization';
 
     private $registry;
+    private $defaultLifetime;
 
-    public function __construct(HubRegistry $registry)
+    /**
+     * @param int|null $defaultLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds) and the cookie will expire at the same time
+     */
+    public function __construct(HubRegistry $registry, ?int $defaultLifetime = 3600)
     {
         $this->registry = $registry;
+        $this->defaultLifetime = $defaultLifetime;
     }
 
     /**
@@ -45,6 +50,10 @@ final class Authorization
             throw new InvalidArgumentException(sprintf('The %s hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
         }
 
+        if (null !== $this->defaultLifetime && !isset($additionalClaims['exp'])) {
+            $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->defaultLifetime} seconds");
+        }
+
         $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
@@ -55,7 +64,12 @@ final class Authorization
             ->withPath(($urlComponents['path'] ?? '/'))
             ->withSecure('http' !== strtolower($urlComponents['scheme'] ?? 'https'))
             ->withHttpOnly(true)
-            ->withSameSite(Cookie::SAMESITE_STRICT);
+            ->withSameSite(Cookie::SAMESITE_STRICT)
+           ;
+
+        if (isset($additionalClaims['exp'])) {
+            $cookie->withExpires($additionalClaims['exp']);
+        }
 
         if (isset($urlComponents['host'])) {
             $cookieDomain = strtolower($urlComponents['host']);
