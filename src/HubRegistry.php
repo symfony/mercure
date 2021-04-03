@@ -23,7 +23,7 @@ final class HubRegistry
     /**
      * @param array<string, HubInterface> $hubs An array of hub instances, where the keys are the names
      */
-    public function __construct(HubInterface $defaultHub, array $hubs)
+    public function __construct(HubInterface $defaultHub, array $hubs = [])
     {
         $this->defaultHub = $defaultHub;
         $this->hubs = $hubs;

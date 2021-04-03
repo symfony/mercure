@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.5.2
+-----
+
+* Set a defaut expiration for the JWT and the cookie when using the `Authorization` class
+
 0.5.1
 -----
 
