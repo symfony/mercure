@@ -23,7 +23,7 @@ final class LcobucciFactoryTest extends TestCase
     protected function setUp(): void
     {
         if (!class_exists(Key\InMemory::class)) {
-            $this->markTestSkipped('requires lcobucci/jwt:^4.0.');
+            $this->markTestSkipped('requires lcobucci/jwt.');
         }
     }
 
