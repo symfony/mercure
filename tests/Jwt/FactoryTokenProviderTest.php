@@ -23,7 +23,7 @@ final class FactoryTokenProviderTest extends TestCase
     public function testGetToken(): void
     {
         if (!class_exists(Key\InMemory::class)) {
-            $this->markTestSkipped('requires lcobucci/jwt:^4.0.');
+            $this->markTestSkipped('requires lcobucci/jwt.');
         }
 
         $factory = new LcobucciFactory('!ChangeMe!', 'hmac.sha256', null);

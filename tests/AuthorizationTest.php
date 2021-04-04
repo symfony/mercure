@@ -46,6 +46,6 @@ class AuthorizationTest extends TestCase
 
         $payload = json_decode(base64_decode(explode('.', $cookie->getValue())[1], true), true);
         $this->assertArrayHasKey('exp', $payload);
-        $this->assertIsFloat($payload['exp']);
+        $this->assertIsNumeric($payload['exp']);
     }
 }

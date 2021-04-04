@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.5.3
+-----
+
+* Full compatibility with PHP 7.1+
+
 0.5.2
 -----
 
