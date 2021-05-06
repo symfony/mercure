@@ -89,7 +89,7 @@ final class Authorization
 
         $cookieDomain = strtolower($urlComponents['host']);
         $host = strtolower($request->getHost());
-        $hostSegments  = array_reverse(explode('.', $currentDomain));
+        $hostSegments = array_reverse(explode('.', $host));
         // grab only the TLD and SLD ( if available ) from the host.
         $currentDomain = (($sld = $hostSegments[1] ?? null) ? ($sld.'.') : '').$hostSegments[0];
 
