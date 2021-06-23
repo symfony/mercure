@@ -88,13 +88,15 @@ final class Authorization
         }
 
         $cookieDomain = strtolower($urlComponents['host']);
-        $currentDomain = strtolower($request->getHost());
-
-        if ($cookieDomain === $currentDomain) {
+        $host = strtolower($request->getHost());
+        if ($cookieDomain === $host) {
             return null;
         }
 
-        if (!str_ends_with($cookieDomain, ".${currentDomain}")) {
+        $hostSegments = array_reverse(explode('.', $host));
+        // grab only the TLD and SLD ( if available ) from the host.
+        $currentDomain = (($sld = $hostSegments[1] ?? null) ? ($sld.'.') : '').$hostSegments[0];
+        if (($cookieDomain !== $currentDomain) && !str_ends_with($cookieDomain, ".${currentDomain}")) {
             throw new RuntimeException(sprintf('Unable to create authorization cookie for a hub on the different second-level domain "%s".', $cookieDomain));
         }
 
