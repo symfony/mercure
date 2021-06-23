@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Tests\Debug;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\Mercure\Debug\TraceablePublisher;
 use Symfony\Component\Mercure\Jwt\StaticJwtProvider;
 use Symfony\Component\Mercure\Publisher;
@@ -32,7 +33,7 @@ final class TraceablePublisherTest extends TestCase
 
     public function testPublish(): void
     {
-        $publisher = new Publisher(self::URL, new StaticJwtProvider(self::JWT));
+        $publisher = new Publisher(self::URL, new StaticJwtProvider(self::JWT), new MockHttpClient());
         $traceablePublisher = new TraceablePublisher($publisher, new Stopwatch());
 
         $update = new Update(
