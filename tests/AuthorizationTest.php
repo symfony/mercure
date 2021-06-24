@@ -16,11 +16,13 @@ namespace Symfony\Component\Mercure\Tests;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
+use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\Mercure\Update;
 
@@ -48,6 +50,32 @@ class AuthorizationTest extends TestCase
         $payload = json_decode(base64_decode(explode('.', $cookie->getValue())[1], true), true);
         $this->assertArrayHasKey('exp', $payload);
         $this->assertIsNumeric($payload['exp']);
+    }
+
+    public function testDeleteCookie(): void
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            function (Update $u): string { return 'dummy'; },
+            new class() implements TokenFactoryInterface {
+                public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
+                {
+                    return '';
+                }
+            }
+        ));
+
+        $authorization = new Authorization($registry);
+        $cookie = $authorization->createCookie($request = Request::create('https://example.com'));
+
+        $response = new Response();
+        $response->headers->setCookie($cookie);
+
+        $authorization->deleteCookie($request, $response);
+
+        $this->assertNull($response->headers->getCookies()[0]->getValue());
+        $this->assertSame(1, $response->headers->getCookies()[0]->getExpiresTime());
     }
 
     /**
