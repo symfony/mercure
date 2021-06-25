@@ -52,7 +52,7 @@ class AuthorizationTest extends TestCase
         $this->assertIsNumeric($payload['exp']);
     }
 
-    public function testDeleteCookie(): void
+    public function testClearCookie(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -72,7 +72,7 @@ class AuthorizationTest extends TestCase
         $response = new Response();
         $response->headers->setCookie($cookie);
 
-        $authorization->deleteCookie($request, $response);
+        $authorization->clearCookie($request, $response);
 
         $this->assertNull($response->headers->getCookies()[0]->getValue());
         $this->assertSame(1, $response->headers->getCookies()[0]->getExpiresTime());

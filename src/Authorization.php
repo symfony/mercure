@@ -82,7 +82,7 @@ final class Authorization
         );
     }
 
-    public function deleteCookie(Request $request, Response $response, ?string $hub = null): void
+    public function clearCookie(Request $request, Response $response, ?string $hub = null): void
     {
         $hubInstance = $this->registry->getHub($hub);
         /** @var array $urlComponents */
