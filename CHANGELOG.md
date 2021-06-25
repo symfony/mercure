@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.6.0
+-----
+
+* Add `Authorization::clearCookie()` to remove the `mercureAuthorization` cookie from the browser
+* Fix the domain check in `Authorization::createCookie()` to allow subdomains
+* Compatibility with Symfony 6
+
 0.5.3
 -----
 
@@ -14,27 +21,27 @@ CHANGELOG
 0.5.1
 -----
 
-* fix `MockHub::__construct()` signature
+* Fix `MockHub::__construct()` signature
 
 0.5.0
 -----
 
-* added `Symfony\Component\Mercure\Jwt\TokenProviderInterface`
-* added `Symfony\Component\Mercure\Jwt\TokenFactoryInterface`
-* added `Symfony\Component\Mercure\Jwt\StaticTokenProvider`
-* added `Symfony\Component\Mercure\Jwt\CallabkeTokenProvider`
-* added `Symfony\Component\Mercure\Jwt\LcobucciTokenFactory`
-* added `Symfony\Component\Mercure\Jwt\FactoryTokenProvider`
-* added `Symfony\Component\Mercure\Messenger\UpdateHandler`
-* added `Symfony\Component\Mercure\Hub`
-* added `Symfony\Component\Mercure\HubInterface`
-* added `Symfony\Component\Mercure\HubRegistry`
-* added `Symfony\Component\Mercure\Discovery`
-* added `Symfony\Component\Mercure\Authorization`
-* deprecated `Jwt\StaticJwtProvider`, use `Jwt\StaticTokenProvider` instead.
-* deprecated `PublisherInterface` interface in favor of `HubInterface`.
-* deprecated `Publisher` class in favor of `Hub`.
-* deprecated `Debug\TraceablePublisher` class in favor of `Debug\TraceableHub`.
+* Added `Symfony\Component\Mercure\Jwt\TokenProviderInterface`
+* Added `Symfony\Component\Mercure\Jwt\TokenFactoryInterface`
+* Added `Symfony\Component\Mercure\Jwt\StaticTokenProvider`
+* Added `Symfony\Component\Mercure\Jwt\CallabkeTokenProvider`
+* Added `Symfony\Component\Mercure\Jwt\LcobucciTokenFactory`
+* Added `Symfony\Component\Mercure\Jwt\FactoryTokenProvider`
+* Added `Symfony\Component\Mercure\Messenger\UpdateHandler`
+* Added `Symfony\Component\Mercure\Hub`
+* Added `Symfony\Component\Mercure\HubInterface`
+* Added `Symfony\Component\Mercure\HubRegistry`
+* Added `Symfony\Component\Mercure\Discovery`
+* Added `Symfony\Component\Mercure\Authorization`
+* Deprecated `Jwt\StaticJwtProvider`, use `Jwt\StaticTokenProvider` instead.
+* Deprecated `PublisherInterface` interface in favor of `HubInterface`.
+* Deprecated `Publisher` class in favor of `Hub`.
+* Deprecated `Debug\TraceablePublisher` class in favor of `Debug\TraceableHub`.
 
 0.4.1
 -----
