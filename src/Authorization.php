@@ -15,7 +15,6 @@ namespace Symfony\Component\Mercure;
 
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 
@@ -36,7 +35,30 @@ final class Authorization
     }
 
     /**
-     * Create Authorization cookie for the given hub.
+     * Sets mercureAuthorization cookie for the given hub.
+     *
+     * @param string[]    $subscribe        a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]    $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param mixed[]     $additionalClaims an array of additional claims for the JWT
+     * @param string|null $hub              the hub to generate the cookie for
+     */
+    public function setCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null): void
+    {
+        $request->attributes->set('_mercure_authorization_cookie', $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
+    }
+
+    /**
+     * Clears the mercureAuthorization cookie for the given hub.
+     *
+     * @param string|null $hub the hub to clear the cookie for
+     */
+    public function clearCookie(Request $request, ?string $hub = null): void
+    {
+        $request->attributes->set('_mercure_authorization_cookie', $this->createClearCookie($request, $hub));
+    }
+
+    /**
+     * Creates mercureAuthorization cookie for the given hub.
      *
      * @param string[]    $subscribe        a list of topics that the authorization cookie will allow subscribing to
      * @param string[]    $publish          a list of topics that the authorization cookie will allow publishing to
@@ -82,18 +104,26 @@ final class Authorization
         );
     }
 
-    public function clearCookie(Request $request, Response $response, ?string $hub = null): void
+    /**
+     * Clears the mercureAuthorization cookie for the given hub.
+     *
+     * @param string|null $hub the hub to clear the cookie for
+     */
+    public function createClearCookie(Request $request, ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         /** @var array $urlComponents */
         $urlComponents = parse_url($hubInstance->getPublicUrl());
 
-        $response->headers->clearCookie(
+        return Cookie::create(
             self::MERCURE_AUTHORIZATION_COOKIE_NAME,
+            null,
+            1,
             $urlComponents['path'] ?? '/',
             $this->getCookieDomain($request, $urlComponents),
             'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
             true,
+            false,
             Cookie::SAMESITE_STRICT
         );
     }

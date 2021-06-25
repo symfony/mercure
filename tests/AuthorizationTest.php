@@ -16,7 +16,6 @@ namespace Symfony\Component\Mercure\Tests;
 use Lcobucci\JWT\Signer\Key\InMemory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\HubRegistry;
@@ -67,15 +66,12 @@ class AuthorizationTest extends TestCase
         ));
 
         $authorization = new Authorization($registry);
-        $cookie = $authorization->createCookie($request = Request::create('https://example.com'));
+        $authorization->setCookie($request = Request::create('https://example.com'));
+        $authorization->clearCookie($request);
 
-        $response = new Response();
-        $response->headers->setCookie($cookie);
-
-        $authorization->clearCookie($request, $response);
-
-        $this->assertNull($response->headers->getCookies()[0]->getValue());
-        $this->assertSame(1, $response->headers->getCookies()[0]->getExpiresTime());
+        $cookie = $request->attributes->get('_mercure_authorization_cookie');
+        $this->assertNull($cookie->getValue());
+        $this->assertSame(1, $cookie->getExpiresTime());
     }
 
     /**

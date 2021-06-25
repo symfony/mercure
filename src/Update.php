@@ -33,12 +33,12 @@ final class Update
     private $retry;
 
     /**
-     * @param array|string $topics
+     * @param string|string[] $topics
      */
     public function __construct($topics, string $data = '', bool $private = false, string $id = null, string $type = null, int $retry = null)
     {
         if (!\is_array($topics) && !\is_string($topics)) {
-            throw new \InvalidArgumentException('$topics must be an array of strings or a string');
+            throw new \InvalidArgumentException('$topics must be an array of strings or a string.');
         }
 
         $this->topics = (array) $topics;
