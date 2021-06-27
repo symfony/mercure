@@ -19,6 +19,11 @@ use Symfony\Component\Mercure\HubRegistry;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
+/**
+ * Registers the Twig helper function.
+ *
+ * @author Kévin Dunglas <kevin@dunglas.fr>
+ */
 final class MercureExtension extends AbstractExtension
 {
     private HubRegistry $hubRegistry;
@@ -32,24 +37,26 @@ final class MercureExtension extends AbstractExtension
         $this->requestStack = $requestStack;
     }
 
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [new TwigFunction('mercure', [$this, 'mercure'])];
     }
 
     /**
-     * @param string|string[] $topics
+     * @param string|string[]|null $topics A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
      */
-    public function mercure($topics, array $options = []): string
+    public function mercure($topics = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
         $url = $this->hubRegistry->getHub($hub)->getPublicUrl();
-        // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
-        $separator = '?';
-        foreach ((array) $topics as $topic) {
-            $url .= $separator.'topic='.rawurlencode($topic);
-            if ('?' === $separator) {
-                $separator = '&';
+        if (null !== $topics) {
+            // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
+            $separator = '?';
+            foreach ((array) $topics as $topic) {
+                $url .= $separator.'topic='.rawurlencode($topic);
+                if ('?' === $separator) {
+                    $separator = '&';
+                }
             }
         }
 

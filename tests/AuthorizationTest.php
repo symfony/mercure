@@ -66,10 +66,10 @@ class AuthorizationTest extends TestCase
         ));
 
         $authorization = new Authorization($registry);
-        $authorization->setCookie($request = Request::create('https://example.com'));
+        $request = Request::create('https://example.com');
         $authorization->clearCookie($request);
 
-        $cookie = $request->attributes->get('_mercure_authorization_cookie');
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
         $this->assertNull($cookie->getValue());
         $this->assertSame(1, $cookie->getExpiresTime());
     }
@@ -132,5 +132,27 @@ class AuthorizationTest extends TestCase
     {
         yield ['https://demo.mercure.com', 'https://example.com'];
         yield ['https://mercure.internal.com', 'https://external.com'];
+    }
+
+    public function testSetMultipleCookies(): void
+    {
+        $this->expectException(RuntimeException::class);
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            function (Update $u): string { return 'dummy'; },
+            new class() implements TokenFactoryInterface {
+                public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
+                {
+                    return '';
+                }
+            }
+        ));
+
+        $authorization = new Authorization($registry);
+        $request = Request::create('https://example.com');
+        $authorization->setCookie($request);
+        $authorization->clearCookie($request);
     }
 }

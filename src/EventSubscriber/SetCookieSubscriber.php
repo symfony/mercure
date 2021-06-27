@@ -17,17 +17,25 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+/**
+ * Sets the cookies created by the Authorization helper class.
+ *
+ * @author Kévin Dunglas <kevin@dunglas.fr>
+ */
 final class SetCookieSubscriber implements EventSubscriberInterface
 {
     public function onKernelResponse(ResponseEvent $event)
     {
         if (
             !$event->isMainRequest() ||
-            null === $cookie = $event->getRequest()->attributes->get('_mercure_authorization_cookie')) {
+            null === $cookies = $event->getRequest()->attributes->get('_mercure_authorization_cookies')) {
             return;
         }
 
-        $event->getResponse()->headers->setCookie($cookie);
+        $response = $event->getResponse();
+        foreach ($cookies as $cookie) {
+            $response->headers->setCookie($cookie);
+        }
     }
 
     /**

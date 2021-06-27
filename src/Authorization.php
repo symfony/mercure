@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 
+/**
+ * Manages the "mercureAuthorization" cookies.
+ */
 final class Authorization
 {
     private const MERCURE_AUTHORIZATION_COOKIE_NAME = 'mercureAuthorization';
@@ -44,7 +47,7 @@ final class Authorization
      */
     public function setCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null): void
     {
-        $request->attributes->set('_mercure_authorization_cookie', $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
+        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
     }
 
     /**
@@ -54,7 +57,7 @@ final class Authorization
      */
     public function clearCookie(Request $request, ?string $hub = null): void
     {
-        $request->attributes->set('_mercure_authorization_cookie', $this->createClearCookie($request, $hub));
+        $this->updateCookies($request, $hub, $this->createClearCookie($request, $hub));
     }
 
     /**
@@ -148,5 +151,16 @@ final class Authorization
         }
 
         return $cookieDomain;
+    }
+
+    private function updateCookies(Request $request, ?string $hub, Cookie $cookie): void
+    {
+        $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
+        if (\array_key_exists($hub, $cookies)) {
+            throw new RuntimeException(sprintf('The "mercureAuthorization" cookie for the hub "%s" has already been set. You cannot set it two times during the same request.', $hub ?? 'default'));
+        }
+
+        $cookies[$hub] = $cookie;
+        $request->attributes->set('_mercure_authorization_cookies', $cookies);
     }
 }
