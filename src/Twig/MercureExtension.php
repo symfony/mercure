@@ -66,7 +66,8 @@ final class MercureExtension extends AbstractExtension
             null === $this->authorization ||
             null === $this->requestStack ||
             (!isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims'])) ||
-            null === $request = $this->requestStack->getMainRequest()
+            /* @phpstan-ignore-next-line */
+            null === $request = method_exists($this->requestStack, 'getMainRequest') ? $this->requestStack->getMainRequest() : $this->requestStack->getMasterRequest()
         ) {
             return $url;
         }

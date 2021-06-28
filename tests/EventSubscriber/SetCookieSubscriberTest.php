@@ -37,7 +37,7 @@ class SetCookieSubscriberTest extends TestCase
         $cookies = ['' => Cookie::create('mercureAuthorization')];
         $request->attributes->set('_mercure_authorization_cookies', $cookies);
         $response = new Response();
-        $event = new ResponseEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST, $response);
+        $event = new ResponseEvent($kernel, $request, 1 /*HttpKernelInterface::MAIN_REQUEST*/, $response);
 
         $subscriber->onKernelResponse($event);
 

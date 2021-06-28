@@ -26,8 +26,9 @@ final class SetCookieSubscriber implements EventSubscriberInterface
 {
     public function onKernelResponse(ResponseEvent $event): void
     {
+        $mainRequest = method_exists($event, 'isMainRequest') ? $event->isMainRequest() : $event->isMasterRequest();
         if (
-            !$event->isMainRequest() ||
+            !($mainRequest) ||
             null === $cookies = ($request = $event->getRequest())->attributes->get('_mercure_authorization_cookies')) {
             return;
         }
