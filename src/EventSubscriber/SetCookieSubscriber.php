@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 final class SetCookieSubscriber implements EventSubscriberInterface
 {
-    public function onKernelResponse(ResponseEvent $event)
+    public function onKernelResponse(ResponseEvent $event): void
     {
         if (
             !$event->isMainRequest() ||

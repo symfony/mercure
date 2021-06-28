@@ -26,9 +26,9 @@ use Twig\TwigFunction;
  */
 final class MercureExtension extends AbstractExtension
 {
-    private HubRegistry $hubRegistry;
-    private ?Authorization $authorization;
-    private ?RequestStack $requestStack;
+    private $hubRegistry;
+    private $authorization;
+    private $requestStack;
 
     public function __construct(HubRegistry $hubRegistry, ?Authorization $authorization = null, ?RequestStack $requestStack = null)
     {
