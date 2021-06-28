@@ -28,9 +28,11 @@ final class SetCookieSubscriber implements EventSubscriberInterface
     {
         if (
             !$event->isMainRequest() ||
-            null === $cookies = $event->getRequest()->attributes->get('_mercure_authorization_cookies')) {
+            null === $cookies = ($request = $event->getRequest())->attributes->get('_mercure_authorization_cookies')) {
             return;
         }
+
+        $request->attributes->remove('_mercure_authorization_cookies');
 
         $response = $event->getResponse();
         foreach ($cookies as $cookie) {
