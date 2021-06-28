@@ -44,6 +44,8 @@ final class MercureExtension extends AbstractExtension
 
     /**
      * @param string|string[]|null $topics A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     *
+     * @return string The URL of the hub with the appropriate "topic" query parameters (if any).
      */
     public function mercure($topics = null, array $options = []): string
     {

@@ -73,7 +73,7 @@ final class Authorization
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
         if (null === $tokenFactory) {
-            throw new InvalidArgumentException(sprintf('The "%s" hub does not contain a token factory.', $hub ? '"'.$hub.'"' : 'default'));
+            throw new InvalidArgumentException(sprintf('The %s hub does not contain a token factory.', $hub ? "\"$hub\"" : 'default'));
         }
 
         $cookieLifetime = $this->cookieLifetime;
@@ -157,7 +157,7 @@ final class Authorization
     {
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (\array_key_exists($hub, $cookies)) {
-            throw new RuntimeException(sprintf('The "mercureAuthorization" cookie for the hub "%s" has already been set. You cannot set it two times during the same request.', $hub ?? 'default'));
+            throw new RuntimeException(sprintf('The "mercureAuthorization" cookie for the %s has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub'));
         }
 
         $cookies[$hub] = $cookie;
