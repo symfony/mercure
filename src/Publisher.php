@@ -82,7 +82,7 @@ final class Publisher implements PublisherInterface
     private function validateJwt(string $jwt): void
     {
         if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/', $jwt)) {
-            throw new Exception\InvalidArgumentException('The provided JWT is not valid');
+            throw new Exception\InvalidArgumentException('The provided JWT is not valid.');
         }
     }
 }
