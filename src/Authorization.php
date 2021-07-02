@@ -40,12 +40,12 @@ final class Authorization
     /**
      * Sets mercureAuthorization cookie for the given hub.
      *
-     * @param string[]    $subscribe        a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]    $publish          a list of topics that the authorization cookie will allow publishing to
-     * @param mixed[]     $additionalClaims an array of additional claims for the JWT
-     * @param string|null $hub              the hub to generate the cookie for
+     * @param string[]|string      $subscribe        a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
+     * @param string|null          $hub              the hub to generate the cookie for
      */
-    public function setCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null): void
+    public function setCookie(Request $request, $subscribe = [], $publish = [], array $additionalClaims = [], ?string $hub = null): void
     {
         $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
     }
@@ -63,12 +63,12 @@ final class Authorization
     /**
      * Creates mercureAuthorization cookie for the given hub.
      *
-     * @param string[]    $subscribe        a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]    $publish          a list of topics that the authorization cookie will allow publishing to
-     * @param mixed[]     $additionalClaims an array of additional claims for the JWT
-     * @param string|null $hub              the hub to generate the cookie for
+     * @param string[]|string      $subscribe        a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
+     * @param string|null          $hub              the hub to generate the cookie for
      */
-    public function createCookie(Request $request, array $subscribe = [], array $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
+    public function createCookie(Request $request, $subscribe = [], $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
@@ -85,7 +85,7 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
+        $token = $tokenFactory->create((array) $subscribe, (array) $publish, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
