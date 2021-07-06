@@ -40,7 +40,7 @@ final class Authorization
     /**
      * Sets mercureAuthorization cookie for the given hub.
      *
-     * @param string[]|string      $subscribe        a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string      $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
      * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
