@@ -4,9 +4,11 @@ CHANGELOG
 0.6.0
 -----
 
+* Add `mercure()` Twig function to generate URLs of the hubs and set the authorization cookies
+* Add `Authorization::setCookie()` to ease setting authorization cookies
 * Add `Authorization::clearCookie()` to remove the `mercureAuthorization` cookie from the browser
 * Fix the domain check in `Authorization::createCookie()` to allow subdomains
-* Compatibility with Symfony 6
+* Compatibility with Symfony 6 and Symfony Contracts 3
 
 0.5.3
 -----
