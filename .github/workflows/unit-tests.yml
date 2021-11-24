@@ -6,7 +6,7 @@ jobs:
   unit-tests:
     name: "unit tests"
 
-    runs-on: ${{ matrix.operating-system }}
+    runs-on: "ubuntu-latest"
 
     strategy:
       matrix:
@@ -19,8 +19,9 @@ jobs:
           - "7.3"
           - "7.4"
           - "8.0"
-        operating-system:
-          - "ubuntu-latest"
+
+    env:
+      SYMFONY_DEPRECATIONS_HELPER: 1
 
     steps:
       - name: "checkout"
