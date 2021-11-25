@@ -63,7 +63,7 @@ final class MercureExtension extends AbstractExtension
             }
         }
 
-        if ('' !== $options['lastEventId'] ?? '') {
+        if ('' !== ($options['lastEventId'] ?? '')) {
             $url .= '&Last-Event-ID='.rawurlencode($options['lastEventId']);
         }
 
