@@ -123,9 +123,11 @@ class AuthorizationTest extends TestCase
 
     public function provideApplicableCookieDomains(): iterable
     {
-        yield ['demo.example.com', 'https://demo.example.com', 'https://example.com'];
-        yield ['mercure.example.com', 'https://mercure.example.com', 'https://app.example.com'];
-        yield ['example.com', 'https://example.com/.well-known/mercure', 'https://app.example.com'];
+        yield ['.example.com', 'https://foo.bar.baz.example.com', 'https://foo.bar.baz.qux.example.com'];
+        yield ['.foo.bar.baz.example.com', 'https://mercure.foo.bar.baz.example.com', 'https://app.foo.bar.baz.example.com'];
+        yield ['example.com', 'https://demo.example.com', 'https://example.com'];
+        yield ['.example.com', 'https://mercure.example.com', 'https://app.example.com'];
+        yield ['.example.com', 'https://example.com/.well-known/mercure', 'https://app.example.com'];
         yield [null, 'https://example.com/.well-known/mercure', 'https://example.com'];
     }
 
