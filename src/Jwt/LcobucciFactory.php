@@ -75,10 +75,10 @@ final class LcobucciFactory implements TokenFactoryInterface
             $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
         }
 
-        $additionalClaims['mercure'] = [
+        $additionalClaims['mercure'] = array_merge([
             'publish' => $publish,
             'subscribe' => $subscribe,
-        ];
+        ], $additionalClaims['mercure'] ?? []);
 
         foreach ($additionalClaims as $name => $value) {
             switch ($name) {
