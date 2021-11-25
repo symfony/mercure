@@ -43,8 +43,8 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|null                                                                                   $topics  A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
-     * @param array{subscribe?: string[]|string, publish?: string[]|string, additionalClaims?: array<string, mixed>} $options The options to pass to the JWT factory
+     * @param string|string[]|null                                                                                                         $topics  A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     * @param array{subscribe?: string[]|string, publish?: string[]|string, additionalClaims?: array<string, mixed>, lastEventId?: string} $options The options to pass to the JWT factory
      *
      * @return string The URL of the hub with the appropriate "topic" query parameters (if any)
      */
@@ -61,6 +61,10 @@ final class MercureExtension extends AbstractExtension
                     $separator = '&';
                 }
             }
+        }
+
+        if ('' !== ($options['lastEventId'] ?? '')) {
+            $url .= '&Last-Event-ID='.rawurlencode($options['lastEventId']);
         }
 
         if (
