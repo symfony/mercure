@@ -73,7 +73,8 @@ final class Authorization
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
         if (null === $tokenFactory) {
-            throw new InvalidArgumentException(sprintf('The %s hub does not contain a token factory.', $hub ? "\"$hub\"" : 'default'));
+            $message = sprintf('The %s hub does not contain a token factory.', $hub ? "\"$hub\"" : 'default');
+            throw new InvalidArgumentException($message);
         }
 
         $cookieLifetime = $this->cookieLifetime;
@@ -143,21 +144,28 @@ final class Authorization
             return null;
         }
 
-        $hostSegments = array_reverse(explode('.', $host));
-        // grab only the TLD and SLD ( if available ) from the host.
-        $currentDomain = (($sld = $hostSegments[1] ?? null) ? ($sld.'.') : '').$hostSegments[0];
-        if (($cookieDomain !== $currentDomain) && !str_ends_with($cookieDomain, ".${currentDomain}")) {
-            throw new RuntimeException(sprintf('Unable to create authorization cookie for a hub on the different second-level domain "%s".', $cookieDomain));
+        if (str_ends_with($cookieDomain, '.'.$host)) {
+            return $host;
         }
 
-        return $cookieDomain;
+        $hostSegments = explode('.', $host);
+        for ($i = 0, $length = \count($hostSegments) - 1; $i < $length; ++$i) {
+            $currentDomain = implode('.', \array_slice($hostSegments, $i));
+            $target = '.'.$currentDomain;
+            if ($currentDomain === $cookieDomain || str_ends_with($cookieDomain, $target)) {
+                return $target;
+            }
+        }
+
+        throw new RuntimeException(sprintf('Unable to create authorization cookie for a hub on the different second-level domain "%s".', $cookieDomain));
     }
 
     private function updateCookies(Request $request, ?string $hub, Cookie $cookie): void
     {
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (\array_key_exists($hub, $cookies)) {
-            throw new RuntimeException(sprintf('The "mercureAuthorization" cookie for the %s has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub'));
+            $message = sprintf('The "mercureAuthorization" cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
+            throw new RuntimeException($message);
         }
 
         $cookies[$hub] = $cookie;
