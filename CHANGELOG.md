@@ -6,7 +6,7 @@ CHANGELOG
 
 * Allow passing additional data to the `mercure` JWT claim when using `Symfony\Component\Mercure\Token\LcobucciFactory` 
 * Add a new `passphrase` argument to `Symfony\Component\Mercure\Token\LcobucciFactory` allowing the use of encrypted keys
-* Add a new `lastEventId` option to the `mercure()` Twig function to set the `Last-Event-ID` query paramet`r
+* Add a new `lastEventId` option to the `mercure()` Twig function to set the `Last-Event-ID` query parametr
 * Fix a bug preventing setting cookies for legit subdomains when using ``Symfony\Component\Mercure\Authorization::createCookie()``
 * Fix bug in `Symfony\Component\Mercure\Token\LcobucciFactory` that results in a runtime error when using "ecdsa" algorithms, alongside "lcobucci/jwt:^4.0"
 
