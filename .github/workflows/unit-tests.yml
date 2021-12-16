@@ -19,9 +19,7 @@ jobs:
           - "7.3"
           - "7.4"
           - "8.0"
-
-    env:
-      SYMFONY_DEPRECATIONS_HELPER: 1
+          - "8.1"
 
     steps:
       - name: "checkout"
@@ -55,4 +53,13 @@ jobs:
         run: "php vendor/bin/simple-phpunit install"
 
       - name: "running unit tests"
+        if: ${{ matrix.dependencies == 'highest' }}
+        env:
+          SYMFONY_DEPRECATIONS_HELPER: 1
+        run: "php vendor/bin/simple-phpunit"
+
+      - name: "running unit tests"
+        if: ${{ matrix.dependencies == 'lowest' }}
+        env:
+          SYMFONY_DEPRECATIONS_HELPER: max[self]=0
         run: "php vendor/bin/simple-phpunit"
