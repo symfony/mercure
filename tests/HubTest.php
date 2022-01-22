@@ -45,11 +45,13 @@ class HubTest extends TestCase
             return new MockResponse('id');
         });
 
-        $httpClient = $httpClient->withOptions([
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
-        ]);
+        if (method_exists($httpClient, 'withOptions')) {
+            $httpClient = $httpClient->withOptions([
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]);
+        }
 
         $provider = new StaticTokenProvider(self::JWT);
         $hub = new Hub(self::URL, $provider, null, null, $httpClient);
