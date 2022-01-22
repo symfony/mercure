@@ -75,7 +75,7 @@ class HubTest extends TestCase
             $this->assertSame(self::AUTH_HEADER, $options['normalized_headers']['authorization'][0]);
             $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21&private=on&id=id&retry=3', $options['body']);
 
-            throw new TransportException('Ops');
+            throw new TransportException('Ops.');
         });
 
         $provider = new StaticTokenProvider(self::JWT);
