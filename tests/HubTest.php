@@ -40,9 +40,16 @@ class HubTest extends TestCase
             $this->assertSame(self::URL, $url);
             $this->assertSame(self::AUTH_HEADER, $options['normalized_headers']['authorization'][0]);
             $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21&private=on&id=id&retry=3', $options['body']);
+            $this->assertSame('Content-Type: application/x-www-form-urlencoded', $options['normalized_headers']['content-type'][0]);
 
             return new MockResponse('id');
         });
+
+        $httpClient = $httpClient->withOptions([
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+        ]);
 
         $provider = new StaticTokenProvider(self::JWT);
         $hub = new Hub(self::URL, $provider, null, null, $httpClient);

@@ -98,6 +98,9 @@ final class Hub implements HubInterface
         try {
             return $this->httpClient->request('POST', $this->getUrl(), [
                 'auth_bearer' => $jwt,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
                 'body' => Internal\QueryBuilder::build($postData),
             ])->getContent();
         } catch (ExceptionInterface $exception) {
