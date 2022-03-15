@@ -79,7 +79,7 @@ final class Authorization
 
         $cookieLifetime = $this->cookieLifetime;
         if (\array_key_exists('exp', $additionalClaims)) {
-            if (null !== $additionalClaims['exp'] && is_int($additionalClaims['exp'])) {
+            if (null !== $additionalClaims['exp'] && \is_int($additionalClaims['exp'])) {
                 $cookieLifetime = $additionalClaims['exp'];
             }
         }
