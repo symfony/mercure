@@ -73,7 +73,7 @@ class AuthorizationTest extends TestCase
 
         $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
         $this->assertNotNull($cookie->getValue());
-        $this->assertSame(3600, $cookie->getExpiresTime());
+        $this->assertNotSame(0, $cookie->getExpiresTime());
     }
 
     public function testClearCookie(): void
