@@ -90,7 +90,7 @@ final class Authorization
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
 
-        if (!$cookieLifetime instanceof \DateTimeInterface && 0 !== $cookieLifetime) {
+        if (0 !== $cookieLifetime) {
             $cookieLifetime = new \DateTimeImmutable("+{$cookieLifetime} seconds");
         }
 
