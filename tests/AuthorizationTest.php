@@ -69,11 +69,11 @@ class AuthorizationTest extends TestCase
 
         $request = Request::create('https://example.com');
         $authorization = new Authorization($registry, 0);
-        $authorization->setCookie($request, ['foo'], ['bar'], ['x-foo' => 'bar']);
+        $authorization->setCookie($request, ['foo'], ['bar'], ['x-foo' => 'bar', 'exp' => 3600]);
 
         $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
         $this->assertNotNull($cookie->getValue());
-        $this->assertSame(0, $cookie->getExpiresTime());
+        $this->assertSame(3600, $cookie->getExpiresTime());
     }
 
     public function testClearCookie(): void
