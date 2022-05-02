@@ -18,6 +18,7 @@ use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @author Saif Eddin Gmati <azjezz@protonmail.com>
@@ -83,6 +84,21 @@ final class Hub implements HubInterface
      */
     public function publish(Update $update): string
     {
+        $jwt = $this->getProvider()->getJwt();
+        $this->validateJwt($jwt);
+
+        try {
+            return $this->publishFast($update, $jwt)->getContent();
+        } catch (ExceptionInterface $exception) {
+            throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function publishFast(Update $update, ?string $token = null): ResponseInterface
+    {
         $postData = [
             'topic' => $update->getTopics(),
             'data' => $update->getData(),
@@ -92,14 +108,37 @@ final class Hub implements HubInterface
             'retry' => $update->getRetry(),
         ];
 
+        if (!$token) {
+            $token = $this->getProvider()->getJwt();
+            $this->validateJwt($token);
+        }
+        return $this->httpClient->request('POST', $this->getUrl(), [
+            'auth_bearer' => $token,
+            'body' => Internal\QueryBuilder::build($postData),
+        ]);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function publishBatch($updates, bool $fireAndForget = false): array
+    {
+
         $jwt = $this->getProvider()->getJwt();
         $this->validateJwt($jwt);
 
         try {
-            return $this->httpClient->request('POST', $this->getUrl(), [
-                'auth_bearer' => $jwt,
-                'body' => Internal\QueryBuilder::build($postData),
-            ])->getContent();
+            $requests = [];
+            foreach ($updates as $update) {
+                $requests[] = $this->publishFast($update, $jwt);
+            }
+            if ($fireAndForget) {
+                return [];
+            } else {
+                return array_map(function ($val) {
+                    return $val->getContent();
+                }, $requests);
+            }
         } catch (ExceptionInterface $exception) {
             throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
         }

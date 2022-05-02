@@ -15,6 +15,7 @@ namespace Symfony\Component\Mercure;
 
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @author Saif Eddin Gmati <azjezz@protonmail.com>
@@ -50,4 +51,15 @@ interface HubInterface
      * Publish an update to this Hub.
      */
     public function publish(Update $update): string;
+
+    /**
+     * Publish an update to this Hub.
+     *
+     */
+    public function publishFast(Update $update, ?string $token = null): ResponseInterface;
+    /**
+     * Publish updates to this Hub.
+     * @param Iterable<Update> $updates
+     */
+    public function publishBatch($updates, bool $fireAndForget = false): array;
 }

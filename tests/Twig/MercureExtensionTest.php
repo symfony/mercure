@@ -22,7 +22,9 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Mercure\Twig\MercureExtension;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Component\Mercure\Update;
 
 /**
@@ -35,7 +37,9 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -56,8 +60,8 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string {
-                return 'dummy';
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
             },
             $this->createMock(TokenFactoryInterface::class)
         ));

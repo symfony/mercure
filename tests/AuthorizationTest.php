@@ -15,6 +15,7 @@ namespace Symfony\Component\Mercure\Tests;
 
 use Lcobucci\JWT\Signer\Key\InMemory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\RuntimeException;
@@ -24,6 +25,7 @@ use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\Mercure\Update;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @author Kévin Dunglas <kevin@dunglas.fr>
@@ -39,7 +41,9 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
             new LcobucciFactory('secret', 'hmac.sha256', 3600)
         ));
 
@@ -57,13 +61,14 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo(['foo']), $this->equalTo(['bar']), $this->arrayHasKey('x-foo'))
-        ;
+            ->with($this->equalTo(['foo']), $this->equalTo(['bar']), $this->arrayHasKey('x-foo'));
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
             $tokenFactory
         ));
 
@@ -81,8 +86,11 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
-            new class() implements TokenFactoryInterface {
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
+            new class() implements TokenFactoryInterface
+            {
                 public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
                 {
                     return '';
@@ -111,7 +119,9 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
             new LcobucciFactory('secret', 'hmac.sha256', 3600)
         ));
 
@@ -143,7 +153,9 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
             new LcobucciFactory('secret', 'hmac.sha256', 3600)
         ));
 
@@ -168,8 +180,11 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
-            new class() implements TokenFactoryInterface {
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
+            new class() implements TokenFactoryInterface
+            {
                 public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
                 {
                     return '';

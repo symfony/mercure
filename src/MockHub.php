@@ -15,6 +15,7 @@ namespace Symfony\Component\Mercure;
 
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 final class MockHub implements HubInterface
 {
@@ -63,6 +64,27 @@ final class MockHub implements HubInterface
 
     public function publish(Update $update): string
     {
+        return ($this->publisher)($update)->getContent();
+    }
+
+    public function publishFast(Update $update, ?string $token = null): ResponseInterface
+    {
         return ($this->publisher)($update);
+    }
+
+    public function publishBatch($updates, bool $fireAndForget = false): array
+    {
+        $requests = [];
+        $token = null;
+        foreach ($updates as $update) {
+            $requests[] = $this->publishFast($update, $token);
+        }
+        if ($fireAndForget) {
+            return [];
+        } else {
+            return array_map(function ($val) {
+                return $val->getContent();
+            }, $requests);
+        }
     }
 }
