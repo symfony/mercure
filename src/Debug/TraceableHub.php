@@ -19,6 +19,7 @@ use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Service\ResetInterface;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * Traces updates for profiler.
@@ -72,6 +73,37 @@ final class TraceableHub implements HubInterface, ResetInterface
         ];
 
         return $content;
+    }
+
+    public function publishFast(Update $update): ResponseInterface
+    {
+        $this->stopwatch->start(__CLASS__);
+        $content = $this->hub->publishFast($update);
+
+        $e = $this->stopwatch->stop(__CLASS__);
+        $this->messages[] = [
+            'object' => $update,
+            'duration' => $e->getDuration(),
+            'memory' => $e->getMemory(),
+        ];
+
+        return $content;
+    }
+
+    public function publishBatch($updates, bool $fireAndForget = false): array
+    {
+        $this->stopwatch->start(__CLASS__);
+        $content = $this->hub->publishBatch($updates);
+
+        $e = $this->stopwatch->stop(__CLASS__);
+        $this->messages[] = [
+            'object' => $updates,
+            'duration' => $e->getDuration(),
+            'memory' => $e->getMemory(),
+        ];
+
+        return $content;
+
     }
 
     public function reset(): void

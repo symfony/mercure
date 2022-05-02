@@ -26,7 +26,7 @@ final class MockHub implements HubInterface
     private $publicUrl;
 
     /**
-     * @param (callable(Update): string) $publisher
+     * @param (callable(Update): ResponseInterface) $publisher
      */
     public function __construct(
         string $url,
