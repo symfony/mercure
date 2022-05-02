@@ -75,10 +75,10 @@ final class TraceableHub implements HubInterface, ResetInterface
         return $content;
     }
 
-    public function publishFast(Update $update): ResponseInterface
+    public function publishFast(Update $update, ?string $token = null): ResponseInterface
     {
         $this->stopwatch->start(__CLASS__);
-        $content = $this->hub->publishFast($update);
+        $content = $this->hub->publishFast($update, $token);
 
         $e = $this->stopwatch->stop(__CLASS__);
         $this->messages[] = [
