@@ -54,12 +54,13 @@ interface HubInterface
 
     /**
      * Publish an update to this Hub.
-     *
      */
     public function publishFast(Update $update, ?string $token = null): ResponseInterface;
+
     /**
      * Publish updates to this Hub.
-     * @param Iterable<Update> $updates
+     *
+     * @param iterable<Update> $updates
      */
     public function publishBatch($updates, bool $fireAndForget = false): array;
 }

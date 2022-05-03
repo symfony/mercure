@@ -18,8 +18,8 @@ use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
-use Symfony\Contracts\Service\ResetInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
+use Symfony\Contracts\Service\ResetInterface;
 
 /**
  * Traces updates for profiler.
@@ -103,7 +103,6 @@ final class TraceableHub implements HubInterface, ResetInterface
         ];
 
         return $content;
-
     }
 
     public function reset(): void

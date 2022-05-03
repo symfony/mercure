@@ -112,6 +112,7 @@ final class Hub implements HubInterface
             $token = $this->getProvider()->getJwt();
             $this->validateJwt($token);
         }
+
         return $this->httpClient->request('POST', $this->getUrl(), [
             'auth_bearer' => $token,
             'body' => Internal\QueryBuilder::build($postData),
@@ -123,7 +124,6 @@ final class Hub implements HubInterface
      */
     public function publishBatch($updates, bool $fireAndForget = false): array
     {
-
         $jwt = $this->getProvider()->getJwt();
         $this->validateJwt($jwt);
 
@@ -134,11 +134,11 @@ final class Hub implements HubInterface
             }
             if ($fireAndForget) {
                 return [];
-            } else {
-                return array_map(function ($val) {
-                    return $val->getContent();
-                }, $requests);
             }
+
+            return array_map(function ($val) {
+                return $val->getContent();
+            }, $requests);
         } catch (ExceptionInterface $exception) {
             throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
         }
@@ -157,7 +157,7 @@ final class Hub implements HubInterface
     private function validateJwt(string $jwt): void
     {
         if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/', $jwt)) {
-            throw new Exception\InvalidArgumentException('The provided JWT is not valid');
+            throw new Exception\InvalidArgumentException('The provided JWT is not valid.');
         }
     }
 }

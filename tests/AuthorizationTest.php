@@ -89,8 +89,7 @@ class AuthorizationTest extends TestCase
             function (Update $u): ResponseInterface {
                 return new MockResponse('dummy');
             },
-            new class() implements TokenFactoryInterface
-            {
+            new class() implements TokenFactoryInterface {
                 public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
                 {
                     return '';
@@ -183,8 +182,7 @@ class AuthorizationTest extends TestCase
             function (Update $u): ResponseInterface {
                 return new MockResponse('dummy');
             },
-            new class() implements TokenFactoryInterface
-            {
+            new class() implements TokenFactoryInterface {
                 public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
                 {
                     return '';

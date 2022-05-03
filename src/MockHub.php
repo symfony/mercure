@@ -81,10 +81,10 @@ final class MockHub implements HubInterface
         }
         if ($fireAndForget) {
             return [];
-        } else {
-            return array_map(function ($val) {
-                return $val->getContent();
-            }, $requests);
         }
+
+        return array_map(function ($val) {
+            return $val->getContent();
+        }, $requests);
     }
 }
