@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Tests\Twig;
 
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -24,6 +25,7 @@ use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\Mercure\Twig\MercureExtension;
 use Symfony\Component\Mercure\Update;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
  * @author Kévin Dunglas <kevin@dunglas.fr>
@@ -35,7 +37,9 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
+            },
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -56,8 +60,8 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string {
-                return 'dummy';
+            function (Update $u): ResponseInterface {
+                return new MockResponse('dummy');
             },
             $this->createMock(TokenFactoryInterface::class)
         ));

@@ -18,6 +18,7 @@ use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Contracts\Service\ResetInterface;
 
 /**
@@ -67,6 +68,36 @@ final class TraceableHub implements HubInterface, ResetInterface
         $e = $this->stopwatch->stop(__CLASS__);
         $this->messages[] = [
             'object' => $update,
+            'duration' => $e->getDuration(),
+            'memory' => $e->getMemory(),
+        ];
+
+        return $content;
+    }
+
+    public function publishFast(Update $update, ?string $token = null): ResponseInterface
+    {
+        $this->stopwatch->start(__CLASS__);
+        $content = $this->hub->publishFast($update, $token);
+
+        $e = $this->stopwatch->stop(__CLASS__);
+        $this->messages[] = [
+            'object' => $update,
+            'duration' => $e->getDuration(),
+            'memory' => $e->getMemory(),
+        ];
+
+        return $content;
+    }
+
+    public function publishBatch($updates, bool $fireAndForget = false): array
+    {
+        $this->stopwatch->start(__CLASS__);
+        $content = $this->hub->publishBatch($updates);
+
+        $e = $this->stopwatch->stop(__CLASS__);
+        $this->messages[] = [
+            'object' => $updates,
             'duration' => $e->getDuration(),
             'memory' => $e->getMemory(),
         ];
