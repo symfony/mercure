@@ -98,6 +98,9 @@ final class Hub implements HubInterface
         try {
             return $this->httpClient->request('POST', $this->getUrl(), [
                 'auth_bearer' => $jwt,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
                 'body' => Internal\QueryBuilder::build($postData),
             ])->getContent();
         } catch (ExceptionInterface $exception) {
@@ -118,7 +121,7 @@ final class Hub implements HubInterface
     private function validateJwt(string $jwt): void
     {
         if (!preg_match('/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*$/', $jwt)) {
-            throw new Exception\InvalidArgumentException('The provided JWT is not valid');
+            throw new Exception\InvalidArgumentException('The provided JWT is not valid.');
         }
     }
 }
