@@ -17,11 +17,13 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
+use Symfony\Component\Mercure\Event\UpdatePublished;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\Hub;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Update;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
 /**
@@ -103,5 +105,34 @@ class HubTest extends TestCase
         $hub = new Hub(self::URL, $provider, null, null);
 
         $hub->publish(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!'));
+    }
+
+    public function testDispatchesUpdatedEvent()
+    {
+        $httpClient = new MockHttpClient(function (string $method, string $url, array $options = []): ResponseInterface {
+            $this->assertSame('POST', $method);
+            $this->assertSame(self::URL, $url);
+            $this->assertSame(self::AUTH_HEADER, $options['normalized_headers']['authorization'][0]);
+            $this->assertSame('topic=https%3A%2F%2Fdemo.mercure.rocks%2Fdemo%2Fbooks%2F1.jsonld&data=Hi+from+Symfony%21', $options['body']);
+            $this->assertSame('Content-Type: application/x-www-form-urlencoded', $options['normalized_headers']['content-type'][0]);
+
+            return new MockResponse('id');
+        });
+
+        $update = new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!');
+        $updatedEvent = UpdatePublished::fromUpdate($update);
+
+        $eventDispatcher = $this->createMock(EventDispatcherInterface::class);
+
+        $eventDispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with($this->callback(function ($argument) use ($updatedEvent) {
+                return $argument == $updatedEvent;
+            }));
+
+        $provider = new StaticTokenProvider(self::JWT);
+        $hub = new Hub(self::URL, $provider, null, null, $httpClient, $eventDispatcher);
+
+        $hub->publish($update);
     }
 }

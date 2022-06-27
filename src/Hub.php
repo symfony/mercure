@@ -14,8 +14,10 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Mercure\Event\UpdatePublished;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -31,19 +33,22 @@ final class Hub implements HubInterface
     private $jwtFactory;
     private $publicUrl;
     private $httpClient;
+    private $eventDispatcher;
 
     public function __construct(
         string $url,
         TokenProviderInterface $jwtProvider,
         TokenFactoryInterface $jwtFactory = null,
         string $publicUrl = null,
-        HttpClientInterface $httpClient = null
+        HttpClientInterface $httpClient = null,
+        EventDispatcherInterface $eventDispatcher = null
     ) {
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;
         $this->publicUrl = $publicUrl;
         $this->jwtFactory = $jwtFactory;
         $this->httpClient = $httpClient ?? HttpClient::create();
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -96,13 +101,19 @@ final class Hub implements HubInterface
         $this->validateJwt($jwt);
 
         try {
-            return $this->httpClient->request('POST', $this->getUrl(), [
+            $content = $this->httpClient->request('POST', $this->getUrl(), [
                 'auth_bearer' => $jwt,
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ],
                 'body' => Internal\QueryBuilder::build($postData),
             ])->getContent();
+
+            if (null !== $this->eventDispatcher) {
+                $this->eventDispatcher->dispatch(UpdatePublished::fromUpdate($update));
+            }
+
+            return $content;
         } catch (ExceptionInterface $exception) {
             throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
         }
