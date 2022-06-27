@@ -45,7 +45,7 @@ final class UpdateHandlerTest extends TestCase
         $hub = new Hub(self::URL, $provider, null, null, $httpClient);
         $handler = new UpdateHandler($hub);
 
-        $handler(new Update(
+        $result = $handler(new Update(
             'https://demo.mercure.rocks/demo/books/1.jsonld',
             'Hi from Symfony!',
             true,
@@ -53,6 +53,8 @@ final class UpdateHandlerTest extends TestCase
             null,
             3
         ));
+
+        $this->assertSame('id', $result);
     }
 
     /**
@@ -72,7 +74,7 @@ final class UpdateHandlerTest extends TestCase
         $publisher = new Publisher(self::URL, new StaticJwtProvider(self::JWT), $httpClient);
         $handler = new UpdateHandler($publisher);
 
-        $handler(new Update(
+        $result = $handler(new Update(
             'https://demo.mercure.rocks/demo/books/1.jsonld',
             'Hi from Symfony!',
             true,
@@ -80,5 +82,7 @@ final class UpdateHandlerTest extends TestCase
             null,
             3
         ));
+
+        $this->assertSame('id', $result);
     }
 }
