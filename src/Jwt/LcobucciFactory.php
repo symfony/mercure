@@ -40,7 +40,8 @@ final class LcobucciFactory implements TokenFactoryInterface
     private $jwtLifetime;
 
     /**
-     * @param int|null $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
+     * @param non-empty-string $secret
+     * @param int|null         $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
      */
     public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '')
     {
@@ -61,7 +62,7 @@ final class LcobucciFactory implements TokenFactoryInterface
             Key\InMemory::plainText($secret, $passphrase)
         );
 
-        $this->jwtLifetime = 0 === $jwtLifetime ? ((int) ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
+        $this->jwtLifetime = 0 === $jwtLifetime ? ((int) \ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
     }
 
     /**

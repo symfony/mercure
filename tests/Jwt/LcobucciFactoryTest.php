@@ -67,9 +67,10 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     /**
      * @dataProvider provideCreateCases
      */
-    public function testCreate(string $algorithm, array $subscribe, array $publish, array $additionalClaims, string $expectedJwt): void
+    public function testCreate(string $secret, string $algorithm, array $subscribe, array $publish, array $additionalClaims, string $expectedJwt): void
     {
-        $factory = new LcobucciFactory('!ChangeMe!', $algorithm, null);
+        \assert('' !== $secret);
+        $factory = new LcobucciFactory($secret, $algorithm, null);
 
         $this->assertSame(
             $expectedJwt,
@@ -79,9 +80,9 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
     public function testCreateWithEcdsaAlgorithm(): void
     {
-        $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha384', null);
+        $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
 
-        $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzM4NCJ9', $factory->create([], ['*']));
+        $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create([], ['*']));
     }
 
     public function testCreateWithEncryptedRSAAlgorithm(): void
@@ -105,30 +106,34 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     public function provideCreateCases(): iterable
     {
         yield [
+            'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.TywAqS7IPhvLdP7cXq_U-kXWUVPKFUyYz8NyfRe0vAU',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ZTK3JhEKO1338LAgRMw6j0lkGRMoaZtU4EtGiAylAns',
         ];
 
         yield [
+            'secret' => 'looooooooooooooooooooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha384',
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ABjz1sGkZ_aOZupf4oq3E4GjfhX__GioTFsrzd7KnbgtwDx0pTOohqjgOjN6vSOe',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ERwjuquA1VXjCx_Q05zHHIVWU40maCOLsu493IKD4osTk0l0bTs9t9S8_tgM32Ih',
         ];
 
         yield [
+            'secret' => 'loooooooooooooooooooooooooooooooooooooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha512',
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.eK12cNN2fGAaSnFjSYaqTrlKWFtOfKh5ILek_LN-qjG6tGpPKBXGknkQl7a_WrN1PYdgUhw3jPMtpk0HLO6VFA',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.eMSnFpi3G0i0lvM_f55E5vUcxkT1GqyVY7qu7c_mZTjKAh4wX3mIJOGoftX7WQRlE1qTVs0OsJ0qyeyet3Yb-g',
         ];
 
         yield [
+            'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',
             'subscribe' => [],
             'publish' => ['*'],
@@ -139,7 +144,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
                     'payload' => ['foo' => 'bar'],
                 ],
             ],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsib3ZlcnJpZGRlbiJdLCJzdWJzY3JpYmUiOlsib3ZlcnJpZGRlbiJdLCJwYXlsb2FkIjp7ImZvbyI6ImJhciJ9fX0.EBddBO8x1UNIiyZLknllC8nvJV7XktOwCKbZbOuerh0',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsib3ZlcnJpZGRlbiJdLCJzdWJzY3JpYmUiOlsib3ZlcnJpZGRlbiJdLCJwYXlsb2FkIjp7ImZvbyI6ImJhciJ9fX0.owz54sSlMuVq2PqtBGFPdrYSXvMKTQc6UQdLEMOlP5s',
         ];
     }
 }
