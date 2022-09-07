@@ -79,19 +79,18 @@ final class Authorization
 
         $cookieLifetime = $this->cookieLifetime;
         if (\array_key_exists('exp', $additionalClaims)) {
-            if (null !== $additionalClaims['exp']) {
+            if (null !== $additionalClaims['exp'] && \is_int($additionalClaims['exp'])) {
                 $cookieLifetime = $additionalClaims['exp'];
             }
-        } else {
-            $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
+        $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
 
         $token = $tokenFactory->create((array) $subscribe, (array) $publish, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
 
-        if (!$cookieLifetime instanceof \DateTimeInterface && 0 !== $cookieLifetime) {
+        if (0 !== $cookieLifetime) {
             $cookieLifetime = new \DateTimeImmutable("+{$cookieLifetime} seconds");
         }
 
