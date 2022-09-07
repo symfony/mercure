@@ -34,12 +34,12 @@ final class UpdateHandler
         $this->hub = $hub;
     }
 
-    public function __invoke(Update $update): void
+    public function __invoke(Update $update)
     {
         if ($this->hub instanceof HubInterface) {
-            $this->hub->publish($update);
-        } else {
-            ($this->hub)($update);
+            return $this->hub->publish($update);
         }
+
+        return ($this->hub)($update);
     }
 }
