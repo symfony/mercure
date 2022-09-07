@@ -40,7 +40,7 @@ class AuthorizationTest extends TestCase
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
-            new LcobucciFactory('secret', 'hmac.sha256', 3600)
+            new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600)
         ));
 
         $authorization = new Authorization($registry);
@@ -112,7 +112,7 @@ class AuthorizationTest extends TestCase
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
-            new LcobucciFactory('secret', 'hmac.sha256', 3600)
+            new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600)
         ));
 
         $authorization = new Authorization($registry);
@@ -144,7 +144,7 @@ class AuthorizationTest extends TestCase
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
-            new LcobucciFactory('secret', 'hmac.sha256', 3600)
+            new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600)
         ));
 
         $authorization = new Authorization($registry);

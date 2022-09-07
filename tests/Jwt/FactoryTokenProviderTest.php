@@ -26,11 +26,11 @@ final class FactoryTokenProviderTest extends TestCase
             $this->markTestSkipped('requires lcobucci/jwt.');
         }
 
-        $factory = new LcobucciFactory('!ChangeMe!', 'hmac.sha256', null);
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
         $provider = new FactoryTokenProvider($factory, [], ['*']);
 
         $this->assertSame(
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.TywAqS7IPhvLdP7cXq_U-kXWUVPKFUyYz8NyfRe0vAU',
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ZTK3JhEKO1338LAgRMw6j0lkGRMoaZtU4EtGiAylAns',
             $provider->getJwt()
         );
     }
