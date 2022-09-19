@@ -42,7 +42,7 @@ final class Discovery
         $hubInstance = $this->registry->getHub($hub);
         $link = new Link('mercure', $hubInstance->getPublicUrl());
 
-        $this->addLinkHeader($request, $link);   
+        $this->addLinkHeader($request, $link);
     }
 
     /**
@@ -55,16 +55,16 @@ final class Discovery
             return;
         }
 
-        if(null === $url){
+        if (null === $url) {
             $url = $request->getRequestUri();
         }
 
         $link = new Link('self', $url);
 
-        $this->addLinkHeader($request, $link);   
+        $this->addLinkHeader($request, $link);
     }
 
-    private function addLinkHeader(Request $request, Link $link)
+    private function addLinkHeader(Request $request, Link $link): void
     {
         if (null === $linkProvider = $request->attributes->get('_links')) {
             $request->attributes->set('_links', new GenericLinkProvider([$link]));
