@@ -55,6 +55,10 @@ final class Discovery
             return;
         }
 
+        if(null === $url){
+            $url = $request->getRequestUri();
+        }
+
         $link = new Link('self', $url);
 
         $this->addLinkHeader($request, $link);   
