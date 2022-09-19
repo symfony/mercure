@@ -41,6 +41,27 @@ final class Discovery
 
         $hubInstance = $this->registry->getHub($hub);
         $link = new Link('mercure', $hubInstance->getPublicUrl());
+
+        $this->addLinkHeader($request, $link);   
+    }
+
+    /**
+     * Add self link header to the given request.
+     */
+    public function addSelfLink(Request $request, ?string $url = null): void
+    {
+        // Prevent issues with NelmioCorsBundle
+        if ($this->isPreflightRequest($request)) {
+            return;
+        }
+
+        $link = new Link('self', $url);
+
+        $this->addLinkHeader($request, $link);   
+    }
+
+    private function addLinkHeader(Request $request, Link $link)
+    {
         if (null === $linkProvider = $request->attributes->get('_links')) {
             $request->attributes->set('_links', new GenericLinkProvider([$link]));
 
