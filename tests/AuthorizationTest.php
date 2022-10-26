@@ -183,28 +183,27 @@ class AuthorizationTest extends TestCase
         $authorization->clearCookie($request);
     }
 
-//    public function testSetNullCookieTopics(): void
-//    {
-//        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
-//        $tokenFactory
-//            ->expects($this->once())
-//            ->method('create')
-//            ->with($this->equalTo(['foo']), $this->equalTo(['bar']), $this->arrayHasKey('x-foo'))
-//        ;
-//
-//        $registry = new HubRegistry(new MockHub(
-//            'https://example.com/.well-known/mercure',
-//            new StaticTokenProvider('foo.bar.baz'),
-//            function (Update $u): string { return 'dummy'; },
-//            $tokenFactory
-//        ));
-//
-//        $request = Request::create('https://example.com');
-//        $authorization = new Authorization($registry, 0);
-//        $authorization->setCookie($request, ['foo'], ['bar'], ['x-foo' => 'bar']);
-//
-//        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
-//        $this->assertNotNull($cookie->getValue());
-//        $this->assertSame(0, $cookie->getExpiresTime());
-//    }
+    public function testSetNullCookieTopics(): void
+    {
+        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+        $tokenFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($this->isNull(), $this->isNull(), $this->arrayHasKey('x-foo'))
+        ;
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            function (Update $u): string { return 'dummy'; },
+            $tokenFactory
+        ));
+
+        $request = Request::create('https://example.com');
+        $authorization = new Authorization($registry);
+        $authorization->setCookie($request, null, null, ['x-foo' => 'bar']);
+
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
+        $this->assertNotNull($cookie->getValue());
+    }
 }
