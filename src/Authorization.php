@@ -34,7 +34,7 @@ final class Authorization
     public function __construct(HubRegistry $registry, ?int $cookieLifetime = null)
     {
         $this->registry = $registry;
-        $this->cookieLifetime = $cookieLifetime ?? (int) ini_get('session.cookie_lifetime');
+        $this->cookieLifetime = $cookieLifetime ?? (int) \ini_get('session.cookie_lifetime');
     }
 
     /**
@@ -86,10 +86,10 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        if ($subscribe !== null) {
+        if (null !== $subscribe) {
             $subscribe = (array) $subscribe;
         }
-        if ($publish !== null) {
+        if (null !== $publish) {
             $publish = (array) $publish;
         }
 

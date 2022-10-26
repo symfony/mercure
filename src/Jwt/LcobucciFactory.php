@@ -77,10 +77,10 @@ final class LcobucciFactory implements TokenFactoryInterface
         }
 
         $tokens = [];
-        if ($publish !== null) {
+        if (null !== $publish) {
             $tokens['publish'] = (array) $publish;
         }
-        if ($subscribe !== null) {
+        if (null !== $subscribe) {
             $tokens['subscribe'] = (array) $subscribe;
         }
 
