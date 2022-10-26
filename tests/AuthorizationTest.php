@@ -83,7 +83,7 @@ class AuthorizationTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
             new class() implements TokenFactoryInterface {
-                public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
+                public function create($subscribe = [], $publish = [], array $additionalClaims = []): string
                 {
                     return '';
                 }
@@ -170,7 +170,7 @@ class AuthorizationTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
             new class() implements TokenFactoryInterface {
-                public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
+                public function create($subscribe = [], $publish = [], array $additionalClaims = []): string
                 {
                     return '';
                 }
@@ -182,4 +182,29 @@ class AuthorizationTest extends TestCase
         $authorization->setCookie($request);
         $authorization->clearCookie($request);
     }
+
+//    public function testSetNullCookieTopics(): void
+//    {
+//        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+//        $tokenFactory
+//            ->expects($this->once())
+//            ->method('create')
+//            ->with($this->equalTo(['foo']), $this->equalTo(['bar']), $this->arrayHasKey('x-foo'))
+//        ;
+//
+//        $registry = new HubRegistry(new MockHub(
+//            'https://example.com/.well-known/mercure',
+//            new StaticTokenProvider('foo.bar.baz'),
+//            function (Update $u): string { return 'dummy'; },
+//            $tokenFactory
+//        ));
+//
+//        $request = Request::create('https://example.com');
+//        $authorization = new Authorization($registry, 0);
+//        $authorization->setCookie($request, ['foo'], ['bar'], ['x-foo' => 'bar']);
+//
+//        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
+//        $this->assertNotNull($cookie->getValue());
+//        $this->assertSame(0, $cookie->getExpiresTime());
+//    }
 }

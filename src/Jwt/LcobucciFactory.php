@@ -68,7 +68,7 @@ final class LcobucciFactory implements TokenFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
+    public function create($subscribe = [], $publish = [], array $additionalClaims = []): string
     {
         $builder = $this->configurations->builder();
 
@@ -77,11 +77,11 @@ final class LcobucciFactory implements TokenFactoryInterface
         }
 
         $tokens = [];
-        if ($publish) {
-            $tokens['publish'] = $publish;
+        if ($publish !== null) {
+            $tokens['publish'] = (array) $publish;
         }
-        if ($subscribe) {
-            $tokens['subscribe'] = $subscribe;
+        if ($subscribe !== null) {
+            $tokens['subscribe'] = (array) $subscribe;
         }
 
         $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);

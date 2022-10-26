@@ -87,7 +87,7 @@ final class Authorization
         }
 
         if ($subscribe !== null) {
-            $subscribe = (array) $publish;
+            $subscribe = (array) $subscribe;
         }
         if ($publish !== null) {
             $publish = (array) $publish;
