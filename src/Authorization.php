@@ -40,8 +40,8 @@ final class Authorization
     /**
      * Sets mercureAuthorization cookie for the given hub.
      *
-     * @param string[]|string      $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param string[]|string|null $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
      */
@@ -63,8 +63,8 @@ final class Authorization
     /**
      * Creates mercureAuthorization cookie for the given hub.
      *
-     * @param string[]|string      $subscribe        a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param string[]|string|null $subscribe        a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
      */
@@ -86,7 +86,14 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        $token = $tokenFactory->create((array) $subscribe, (array) $publish, $additionalClaims);
+        if ($subscribe !== null) {
+            $subscribe = (array) $publish;
+        }
+        if ($publish !== null) {
+            $publish = (array) $publish;
+        }
+
+        $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
