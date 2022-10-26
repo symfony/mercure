@@ -83,7 +83,7 @@ class AuthorizationTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
             new class() implements TokenFactoryInterface {
-                public function create($subscribe = [], $publish = [], array $additionalClaims = []): string
+                public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
                 {
                     return '';
                 }
@@ -170,7 +170,7 @@ class AuthorizationTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
             new class() implements TokenFactoryInterface {
-                public function create($subscribe = [], $publish = [], array $additionalClaims = []): string
+                public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
                 {
                     return '';
                 }

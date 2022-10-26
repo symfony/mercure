@@ -68,7 +68,7 @@ final class LcobucciFactory implements TokenFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create($subscribe = [], $publish = [], array $additionalClaims = []): string
+    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
     {
         $builder = $this->configurations->builder();
 

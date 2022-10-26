@@ -27,5 +27,5 @@ interface TokenFactoryInterface
      * @param string[]|string|null $publish          a list of topics that the token will allow publishing to
      * @param mixed[]              $additionalClaims an array of additional claims for the JWT
      */
-    public function create($subscribe = [], $publish = [], array $additionalClaims = []): string;
+    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string;
 }
