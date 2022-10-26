@@ -27,14 +27,16 @@ final class Authorization
 
     private $registry;
     private $cookieLifetime;
+    private $cookieSameSite;
 
     /**
      * @param int|null $cookieLifetime in seconds, 0 for the current session, null to default to the value of "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0. The "exp" field of the JWT will be set accordingly if not set explicitly, defaults to 1h in case of session cookies.
      */
-    public function __construct(HubRegistry $registry, ?int $cookieLifetime = null)
+    public function __construct(HubRegistry $registry, ?int $cookieLifetime = null, ?string $cookieSameSite = Cookie::SAMESITE_STRICT)
     {
         $this->registry = $registry;
         $this->cookieLifetime = $cookieLifetime ?? (int) \ini_get('session.cookie_lifetime');
+        $this->cookieSameSite = $cookieSameSite;
     }
 
     /**
@@ -111,7 +113,7 @@ final class Authorization
             'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
             true,
             false,
-            Cookie::SAMESITE_STRICT
+            $this->cookieSameSite
         );
     }
 
@@ -135,7 +137,7 @@ final class Authorization
             'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
             true,
             false,
-            Cookie::SAMESITE_STRICT
+            $this->cookieSameSite
         );
     }
 

@@ -15,6 +15,7 @@ namespace Symfony\Component\Mercure\Tests;
 
 use Lcobucci\JWT\Signer\Key\InMemory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\RuntimeException;
@@ -68,12 +69,13 @@ class AuthorizationTest extends TestCase
         ));
 
         $request = Request::create('https://example.com');
-        $authorization = new Authorization($registry, 0);
+        $authorization = new Authorization($registry, 0, Cookie::SAMESITE_LAX);
         $authorization->setCookie($request, ['foo'], ['bar'], ['x-foo' => 'bar']);
 
         $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
         $this->assertNotNull($cookie->getValue());
         $this->assertSame(0, $cookie->getExpiresTime());
+        $this->assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
     }
 
     public function testClearCookie(): void
