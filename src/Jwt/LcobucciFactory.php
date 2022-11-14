@@ -68,7 +68,7 @@ final class LcobucciFactory implements TokenFactoryInterface
     /**
      * {@inheritdoc}
      */
-    public function create(array $subscribe = [], array $publish = [], array $additionalClaims = []): string
+    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
     {
         $builder = $this->configurations->builder();
 
@@ -76,10 +76,15 @@ final class LcobucciFactory implements TokenFactoryInterface
             $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
         }
 
-        $additionalClaims['mercure'] = array_merge([
-            'publish' => $publish,
-            'subscribe' => $subscribe,
-        ], $additionalClaims['mercure'] ?? []);
+        $tokens = [];
+        if (null !== $publish) {
+            $tokens['publish'] = (array) $publish;
+        }
+        if (null !== $subscribe) {
+            $tokens['subscribe'] = (array) $subscribe;
+        }
+
+        $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
 
         foreach ($additionalClaims as $name => $value) {
             switch ($name) {

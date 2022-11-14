@@ -67,7 +67,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     /**
      * @dataProvider provideCreateCases
      */
-    public function testCreate(string $secret, string $algorithm, array $subscribe, array $publish, array $additionalClaims, string $expectedJwt): void
+    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt): void
     {
         \assert('' !== $secret);
         $factory = new LcobucciFactory($secret, $algorithm, null);
@@ -105,6 +105,15 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
     public function provideCreateCases(): iterable
     {
+        yield [
+            'secret' => 'looooooooooooongenoughtestsecret',
+            'algorithm' => 'hmac.sha256',
+            'subscribe' => null,
+            'publish' => null,
+            'additionalClaims' => [],
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjpbXX0.V7YsSEFCPfzyvt38oIID7b9iE4NYjfcV07CxPUyBeLk',
+        ];
+
         yield [
             'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',

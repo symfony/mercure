@@ -27,21 +27,23 @@ final class Authorization
 
     private $registry;
     private $cookieLifetime;
+    private $cookieSameSite;
 
     /**
      * @param int|null $cookieLifetime in seconds, 0 for the current session, null to default to the value of "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0. The "exp" field of the JWT will be set accordingly if not set explicitly, defaults to 1h in case of session cookies.
      */
-    public function __construct(HubRegistry $registry, ?int $cookieLifetime = null)
+    public function __construct(HubRegistry $registry, ?int $cookieLifetime = null, ?string $cookieSameSite = Cookie::SAMESITE_STRICT)
     {
         $this->registry = $registry;
-        $this->cookieLifetime = $cookieLifetime ?? (int) ini_get('session.cookie_lifetime');
+        $this->cookieLifetime = $cookieLifetime ?? (int) \ini_get('session.cookie_lifetime');
+        $this->cookieSameSite = $cookieSameSite;
     }
 
     /**
      * Sets mercureAuthorization cookie for the given hub.
      *
-     * @param string[]|string      $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param string[]|string|null $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
      */
@@ -63,8 +65,8 @@ final class Authorization
     /**
      * Creates mercureAuthorization cookie for the given hub.
      *
-     * @param string[]|string      $subscribe        a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string      $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param string[]|string|null $subscribe        a list of topics that the authorization cookie will allow subscribing to
+     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
      */
@@ -86,7 +88,14 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        $token = $tokenFactory->create((array) $subscribe, (array) $publish, $additionalClaims);
+        if (null !== $subscribe) {
+            $subscribe = (array) $subscribe;
+        }
+        if (null !== $publish) {
+            $publish = (array) $publish;
+        }
+
+        $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
@@ -104,7 +113,7 @@ final class Authorization
             'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
             true,
             false,
-            Cookie::SAMESITE_STRICT
+            $this->cookieSameSite
         );
     }
 
@@ -128,7 +137,7 @@ final class Authorization
             'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
             true,
             false,
-            Cookie::SAMESITE_STRICT
+            $this->cookieSameSite
         );
     }
 
