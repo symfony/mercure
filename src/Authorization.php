@@ -27,10 +27,14 @@ final class Authorization
 
     private $registry;
     private $cookieLifetime;
+    /**
+     * @var Cookie::SAMESITE_*|null|null
+     */
     private $cookieSameSite;
 
     /**
-     * @param int|null $cookieLifetime in seconds, 0 for the current session, null to default to the value of "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0. The "exp" field of the JWT will be set accordingly if not set explicitly, defaults to 1h in case of session cookies.
+     * @param int|null                      $cookieLifetime in seconds, 0 for the current session, null to default to the value of "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0. The "exp" field of the JWT will be set accordingly if not set explicitly, defaults to 1h in case of session cookies.
+     * @param Cookie::SAMESITE_*|null       $cookieSameSite
      */
     public function __construct(HubRegistry $registry, ?int $cookieLifetime = null, ?string $cookieSameSite = Cookie::SAMESITE_STRICT)
     {
