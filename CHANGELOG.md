@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.6.2
+-----
+
+* Always set the `Content-Type` HTTP header to `application/x-www-form-urlencoded` when sending an update to the hub
+* `Symfony\Component\Mercure\Messenger\UpdateHandler` now returns the ID of the published update
+* Allow passing `null` as `$subscribe` and `$publish` parameters in `Symfony\Component\Mercure\Jwt\TokenFactoryInterface`
+* Add a new optional parameter in `Symfony\Component\Mercure\Authorization::__construct()` to set the `SameSite` cookie attribute
+
 0.6.1
 -----
 
