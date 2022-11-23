@@ -54,7 +54,6 @@ final class LcobucciFactory implements TokenFactoryInterface
         }
 
         $signerClass = self::SIGN_ALGORITHMS[$algorithm];
-        /** @phpstan-ignore-next-line */
         $signer = is_a($signerClass, Signer\Ecdsa::class, true) && method_exists(Signer\Ecdsa::class, 'create') ? $signerClass::create() : new $signerClass();
 
         $this->configurations = Configuration::forSymmetricSigner(
