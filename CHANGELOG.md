@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.6.3
+-----
+
+* Compatibility with `lcobucci/jwt` 5.0
+
 0.6.2
 -----
 
