@@ -15,15 +15,15 @@ jobs:
       - name: "installing PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          php-version: "8.1"
+          php-version: "8.2"
           ini-values: memory_limit=-1
           tools: composer:v2, phpstan, cs2pr
 
       - name: "installing dependencies"
         run: "composer update --no-interaction --no-progress --no-suggest"
 
-      - name: "installing phpunit"
+      - name: "installing PHPUnit"
         run: "php vendor/bin/simple-phpunit install"
 
-      - name: "running static analysis ( phpstan )"
+      - name: "running static analysis (PHPStan)"
         run: "phpstan analyse"
