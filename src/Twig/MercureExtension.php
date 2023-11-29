@@ -30,7 +30,7 @@ final class MercureExtension extends AbstractExtension
     private $authorization;
     private $requestStack;
 
-    public function __construct(HubRegistry $hubRegistry, ?Authorization $authorization = null, ?RequestStack $requestStack = null)
+    public function __construct(HubRegistry $hubRegistry, Authorization $authorization = null, RequestStack $requestStack = null)
     {
         $this->hubRegistry = $hubRegistry;
         $this->authorization = $authorization;
@@ -68,11 +68,11 @@ final class MercureExtension extends AbstractExtension
         }
 
         if (
-            null === $this->authorization ||
-            null === $this->requestStack ||
-            (!isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims'])) ||
+            null === $this->authorization
+            || null === $this->requestStack
+            || (!isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims']))
             /* @phpstan-ignore-next-line */
-            null === $request = method_exists($this->requestStack, 'getMainRequest') ? $this->requestStack->getMainRequest() : $this->requestStack->getMasterRequest()
+            || null === $request = method_exists($this->requestStack, 'getMainRequest') ? $this->requestStack->getMainRequest() : $this->requestStack->getMasterRequest()
         ) {
             return $url;
         }
