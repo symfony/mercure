@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.6.4
+-----
+
+* Allow `symfony/deprecation-contracts` v4
+
 0.6.3
 -----
 
