@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
@@ -31,19 +32,22 @@ final class Hub implements HubInterface
     private $jwtFactory;
     private $publicUrl;
     private $httpClient;
+    private $logger;
 
     public function __construct(
         string $url,
         TokenProviderInterface $jwtProvider,
         TokenFactoryInterface $jwtFactory = null,
         string $publicUrl = null,
-        HttpClientInterface $httpClient = null
+        HttpClientInterface $httpClient = null,
+        LoggerInterface $logger = null
     ) {
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;
         $this->publicUrl = $publicUrl;
         $this->jwtFactory = $jwtFactory;
         $this->httpClient = $httpClient ?? HttpClient::create();
+        $this->logger = $logger;
     }
 
     /**
@@ -83,7 +87,30 @@ final class Hub implements HubInterface
      */
     public function publish(Update $update): string
     {
-        $postData = [
+        $jwt = $this->getProvider()->getJwt();
+        $this->validateJwt($jwt);
+        $postData = $this->updateToArray($update);
+
+        try {
+            $response = $this->httpClient->request('POST', $this->getUrl(), [
+                'auth_bearer' => $jwt,
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'body' => Internal\QueryBuilder::build($postData),
+            ])->getContent();
+
+            $this->logUpdate($update);
+
+            return $response;
+        } catch (ExceptionInterface $exception) {
+            throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
+        }
+    }
+
+    private function updateToArray(Update $update): array
+    {
+        return [
             'topic' => $update->getTopics(),
             'data' => $update->getData(),
             'private' => $update->isPrivate() ? 'on' : null,
@@ -91,21 +118,30 @@ final class Hub implements HubInterface
             'type' => $update->getType(),
             'retry' => $update->getRetry(),
         ];
+    }
 
-        $jwt = $this->getProvider()->getJwt();
-        $this->validateJwt($jwt);
-
-        try {
-            return $this->httpClient->request('POST', $this->getUrl(), [
-                'auth_bearer' => $jwt,
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                ],
-                'body' => Internal\QueryBuilder::build($postData),
-            ])->getContent();
-        } catch (ExceptionInterface $exception) {
-            throw new Exception\RuntimeException('Failed to send an update.', 0, $exception);
+    private function logUpdate(Update $update): void
+    {
+        if (null === $this->logger) {
+            return;
         }
+
+        $this->logger->info(
+            sprintf(
+                'Published update with ID \'%s\' on topic(s) [%s]',
+                $update->getId(),
+                implode(', ', $update->getTopics())
+            ),
+            [
+                'id' => $update->getId(),
+                'topic' => $update->getTopics(),
+            ]
+        );
+
+        $this->logger->debug(
+            sprintf('Debug details for update \'%s\'', $update->getId()),
+            $this->updateToArray($update)
+        );
     }
 
     /**

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Tests;
 
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpClient\Exception\TransportException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -103,5 +104,50 @@ class HubTest extends TestCase
         $hub = new Hub(self::URL, $provider, null, null);
 
         $hub->publish(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!'));
+    }
+
+    public function testLogUpdate()
+    {
+        $provider = new StaticTokenProvider(self::JWT);
+        $httpClient = new MockHttpClient(function (string $method, string $url, array $options = []): ResponseInterface {
+            return new MockResponse('id');
+        });
+
+        $update = new Update(
+            'https://demo.mercure.rocks/demo/books/1.jsonld',
+            'Hi from Symfony!',
+            true,
+            'id',
+            null,
+            3
+        );
+
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects(self::once())
+            ->method('info')
+            ->with(
+                'Published update with ID \'id\' on topic(s) [https://demo.mercure.rocks/demo/books/1.jsonld]',
+                [
+                    'id' => 'id',
+                    'topic' => ['https://demo.mercure.rocks/demo/books/1.jsonld'],
+                ]
+            );
+        $logger->expects(self::once())
+            ->method('debug')
+            ->with(
+                'Debug details for update \'id\'',
+                [
+                    'topic' => ['https://demo.mercure.rocks/demo/books/1.jsonld'],
+                    'data' => 'Hi from Symfony!',
+                    'private' => true,
+                    'id' => 'id',
+                    'type' => null,
+                    'retry' => 3,
+                ]
+            );
+
+        $hub = new Hub(self::URL, $provider, null, null, $httpClient, $logger);
+
+        $hub->publish($update);
     }
 }
