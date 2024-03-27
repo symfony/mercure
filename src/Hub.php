@@ -35,9 +35,9 @@ final class Hub implements HubInterface
     public function __construct(
         string $url,
         TokenProviderInterface $jwtProvider,
-        TokenFactoryInterface $jwtFactory = null,
-        string $publicUrl = null,
-        HttpClientInterface $httpClient = null
+        ?TokenFactoryInterface $jwtFactory = null,
+        ?string $publicUrl = null,
+        ?HttpClientInterface $httpClient = null
     ) {
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;
@@ -46,41 +46,26 @@ final class Hub implements HubInterface
         $this->httpClient = $httpClient ?? HttpClient::create();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getUrl(): string
     {
         return $this->url;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getPublicUrl(): string
     {
         return $this->publicUrl ?? $this->getUrl();
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getProvider(): TokenProviderInterface
     {
         return $this->jwtProvider;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     public function publish(Update $update): string
     {
         $postData = [
