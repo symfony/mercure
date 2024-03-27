@@ -31,8 +31,8 @@ final class MockHub implements HubInterface
         string $url,
         TokenProviderInterface $jwtProvider,
         callable $publisher,
-        TokenFactoryInterface $jwtFactory = null,
-        string $publicUrl = null
+        ?TokenFactoryInterface $jwtFactory = null,
+        ?string $publicUrl = null
     ) {
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;
