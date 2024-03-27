@@ -29,7 +29,7 @@ final class HubRegistry
         $this->hubs = $hubs;
     }
 
-    public function getHub(string $name = null): HubInterface
+    public function getHub(?string $name = null): HubInterface
     {
         if (null === $name) {
             return $this->defaultHub;

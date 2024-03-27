@@ -30,7 +30,7 @@ final class MercureExtension extends AbstractExtension
     private $authorization;
     private $requestStack;
 
-    public function __construct(HubRegistry $hubRegistry, Authorization $authorization = null, RequestStack $requestStack = null)
+    public function __construct(HubRegistry $hubRegistry, ?Authorization $authorization = null, ?RequestStack $requestStack = null)
     {
         $this->hubRegistry = $hubRegistry;
         $this->authorization = $authorization;

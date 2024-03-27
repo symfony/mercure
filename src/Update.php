@@ -35,7 +35,7 @@ final class Update
     /**
      * @param string|string[] $topics
      */
-    public function __construct($topics, string $data = '', bool $private = false, string $id = null, string $type = null, int $retry = null)
+    public function __construct($topics, string $data = '', bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null)
     {
         if (!\is_array($topics) && !\is_string($topics)) {
             throw new \InvalidArgumentException('$topics must be an array of strings or a string.');
