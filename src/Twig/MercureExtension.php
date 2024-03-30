@@ -64,7 +64,9 @@ final class MercureExtension extends AbstractExtension
         }
 
         if ('' !== ($options['lastEventId'] ?? '')) {
-            $url .= '&Last-Event-ID='.rawurlencode($options['lastEventId']);
+            $encodedLastEventId = rawurlencode($options['lastEventId']);
+            // Last-Event-ID is kept for compatibility with older versions of the protocol: https://mercure.rocks/docs/UPGRADE#0-14
+            $url .= "&lastEventID=$encodedLastEventId&Last-Event-ID=$encodedLastEventId";
         }
 
         if (
