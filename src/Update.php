@@ -34,6 +34,7 @@ final class Update
 
     /**
      * @param string|string[] $topics
+     * @param ?string $type SEE type: https://developer.mozilla.org/en-US/docs/Web/API/EventSource
      */
     public function __construct($topics, string $data = '', bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null)
     {
