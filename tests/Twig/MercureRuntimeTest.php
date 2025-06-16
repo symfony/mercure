@@ -22,7 +22,6 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
-use Symfony\Component\Mercure\Twig\MercureExtension;
 use Symfony\Component\Mercure\Twig\MercureRuntime;
 use Symfony\Component\Mercure\Update;
 
