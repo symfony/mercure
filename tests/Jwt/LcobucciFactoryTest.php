@@ -67,7 +67,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     /**
      * @dataProvider provideCreateCases
      */
-    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt): void
+    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt)
     {
         \assert('' !== $secret);
         $factory = new LcobucciFactory($secret, $algorithm, null);
@@ -78,14 +78,14 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testCreateWithEcdsaAlgorithm(): void
+    public function testCreateWithEcdsaAlgorithm()
     {
         $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
 
         $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create([], ['*']));
     }
 
-    public function testCreateWithEncryptedRSAAlgorithm(): void
+    public function testCreateWithEncryptedRSAAlgorithm()
     {
         $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing');
 
@@ -95,7 +95,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testInvalidAlgorithm(): void
+    public function testInvalidAlgorithm()
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported algorithm "md5", expected one of "hmac.sha256", "hmac.sha384", "hmac.sha512", "ecdsa.sha256", "ecdsa.sha384", "ecdsa.sha512", "rsa.sha256", "rsa.sha384", "rsa.sha512".');

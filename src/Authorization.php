@@ -79,7 +79,7 @@ final class Authorization
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
         if (null === $tokenFactory) {
-            $message = sprintf('The %s hub does not contain a token factory.', $hub ? "\"$hub\"" : 'default');
+            $message = \sprintf('The %s hub does not contain a token factory.', $hub ? "\"$hub\"" : 'default');
             throw new InvalidArgumentException($message);
         }
 
@@ -170,14 +170,14 @@ final class Authorization
             }
         }
 
-        throw new RuntimeException(sprintf('Unable to create authorization cookie for a hub on the different second-level domain "%s".', $cookieDomain));
+        throw new RuntimeException(\sprintf('Unable to create authorization cookie for a hub on the different second-level domain "%s".', $cookieDomain));
     }
 
     private function updateCookies(Request $request, ?string $hub, Cookie $cookie): void
     {
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (\array_key_exists($hub, $cookies)) {
-            $message = sprintf('The "mercureAuthorization" cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
+            $message = \sprintf('The "mercureAuthorization" cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
             throw new RuntimeException($message);
         }
 

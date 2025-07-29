@@ -37,7 +37,7 @@ final class Hub implements HubInterface
         TokenProviderInterface $jwtProvider,
         ?TokenFactoryInterface $jwtFactory = null,
         ?string $publicUrl = null,
-        ?HttpClientInterface $httpClient = null
+        ?HttpClientInterface $httpClient = null,
     ) {
         $this->url = $url;
         $this->jwtProvider = $jwtProvider;

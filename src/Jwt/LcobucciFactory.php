@@ -64,9 +64,6 @@ final class LcobucciFactory implements TokenFactoryInterface
         $this->jwtLifetime = 0 === $jwtLifetime ? ((int) \ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
     {
         $builder = $this->configurations->builder();

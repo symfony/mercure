@@ -30,7 +30,7 @@ use Symfony\Component\Mercure\Update;
  */
 class MercureExtensionTest extends TestCase
 {
-    public function testMercure(): void
+    public function testMercure()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -51,7 +51,7 @@ class MercureExtensionTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
-    public function testMercureLastEventId(): void
+    public function testMercureLastEventId()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',

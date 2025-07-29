@@ -27,7 +27,7 @@ trigger_deprecation('symfony/mercure', '0.5', 'Class "%s" is deprecated, use "%s
  *
  * @experimental
  *
- * @deprecated
+ * @deprecated since Mercure 0.5
  */
 final class TraceablePublisher implements PublisherInterface, ResetInterface
 {

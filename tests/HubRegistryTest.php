@@ -21,7 +21,7 @@ use Symfony\Component\Mercure\MockHub;
 
 class HubRegistryTest extends TestCase
 {
-    public function testGetHubByName(): void
+    public function testGetHubByName()
     {
         $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
         $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static function (): string { return 'bar'; });
@@ -30,7 +30,7 @@ class HubRegistryTest extends TestCase
         $this->assertSame($fooHub, $registry->getHub('foo'));
     }
 
-    public function testGetDefaultHub(): void
+    public function testGetDefaultHub()
     {
         $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
         $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static function (): string { return 'bar'; });
@@ -39,7 +39,7 @@ class HubRegistryTest extends TestCase
         $this->assertSame($fooHub, $registry->getHub());
     }
 
-    public function testGetMissingHubThrows(): void
+    public function testGetMissingHubThrows()
     {
         $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
         $registry = new HubRegistry($fooHub, ['foo' => $fooHub]);
@@ -48,7 +48,7 @@ class HubRegistryTest extends TestCase
         $registry->getHub('bar');
     }
 
-    public function testGetAllHubs(): void
+    public function testGetAllHubs()
     {
         $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
         $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static function (): string { return 'bar'; });

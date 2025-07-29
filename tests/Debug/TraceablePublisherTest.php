@@ -31,7 +31,7 @@ final class TraceablePublisherTest extends TestCase
     public const URL = 'https://demo.mercure.rocks/.well-known/mercure';
     public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyJmb28iLCJiYXIiXSwicHVibGlzaCI6WyJmb28iXX19.afLx2f2ut3YgNVFStCx95Zm_UND1mZJ69OenXaDuZL8';
 
-    public function testPublish(): void
+    public function testPublish()
     {
         $publisher = new Publisher(self::URL, new StaticJwtProvider(self::JWT), new MockHttpClient());
         $traceablePublisher = new TraceablePublisher($publisher, new Stopwatch());

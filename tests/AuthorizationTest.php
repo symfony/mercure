@@ -31,7 +31,7 @@ use Symfony\Component\Mercure\Update;
  */
 class AuthorizationTest extends TestCase
 {
-    public function testJwtLifetime(): void
+    public function testJwtLifetime()
     {
         if (!class_exists(InMemory::class)) {
             $this->markTestSkipped('"lcobucci/jwt" is not installed');
@@ -52,7 +52,7 @@ class AuthorizationTest extends TestCase
         $this->assertIsNumeric($payload['exp']);
     }
 
-    public function testSetCookie(): void
+    public function testSetCookie()
     {
         $tokenFactory = $this->createMock(TokenFactoryInterface::class);
         $tokenFactory
@@ -78,13 +78,13 @@ class AuthorizationTest extends TestCase
         $this->assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
     }
 
-    public function testClearCookie(): void
+    public function testClearCookie()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
-            new class() implements TokenFactoryInterface {
+            new class implements TokenFactoryInterface {
                 public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
                 {
                     return '';
@@ -104,7 +104,7 @@ class AuthorizationTest extends TestCase
     /**
      * @dataProvider provideApplicableCookieDomains
      */
-    public function testApplicableCookieDomains(?string $expected, string $hubUrl, string $requestUrl): void
+    public function testApplicableCookieDomains(?string $expected, string $hubUrl, string $requestUrl)
     {
         if (!class_exists(InMemory::class)) {
             $this->markTestSkipped('"lcobucci/jwt" is not installed');
@@ -136,7 +136,7 @@ class AuthorizationTest extends TestCase
     /**
      * @dataProvider provideNonApplicableCookieDomains
      */
-    public function testNonApplicableCookieDomains(string $hubUrl, string $requestUrl): void
+    public function testNonApplicableCookieDomains(string $hubUrl, string $requestUrl)
     {
         if (!class_exists(InMemory::class)) {
             $this->markTestSkipped('"lcobucci/jwt" is not installed');
@@ -163,7 +163,7 @@ class AuthorizationTest extends TestCase
         yield ['https://mercure.internal.com', 'https://external.com'];
     }
 
-    public function testSetMultipleCookies(): void
+    public function testSetMultipleCookies()
     {
         $this->expectException(RuntimeException::class);
 
@@ -171,7 +171,7 @@ class AuthorizationTest extends TestCase
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
             function (Update $u): string { return 'dummy'; },
-            new class() implements TokenFactoryInterface {
+            new class implements TokenFactoryInterface {
                 public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
                 {
                     return '';
@@ -185,7 +185,7 @@ class AuthorizationTest extends TestCase
         $authorization->clearCookie($request);
     }
 
-    public function testSetNullCookieTopics(): void
+    public function testSetNullCookieTopics()
     {
         $tokenFactory = $this->createMock(TokenFactoryInterface::class);
         $tokenFactory

@@ -25,6 +25,6 @@ final class InvalidArgumentException extends \InvalidArgumentException implement
      */
     public static function forInvalidAlgorithm(string $algorithm, array $supportedAlgorithms): self
     {
-        return new self(sprintf('Unsupported algorithm "%s", expected one of "%s".', $algorithm, implode('", "', $supportedAlgorithms)));
+        return new self(\sprintf('Unsupported algorithm "%s", expected one of "%s".', $algorithm, implode('", "', $supportedAlgorithms)));
     }
 }

@@ -7,3 +7,9 @@ parameters:
 	treatPhpDocTypesAsCertain: false
 	bootstrapFiles:
 		- vendor/bin/.phpunit/phpunit/vendor/autoload.php
+	ignoreErrors:
+		-
+			message: "#^Method .*::test.*\\(\\) has no return type specified\\.$#"
+			reportUnmatched: false
+			paths:
+				- tests/*

@@ -18,7 +18,7 @@ trigger_deprecation('symfony/mercure', '0.5', 'Interface "%s" is deprecated, use
 /**
  * @author Vincent Chalamon <vincentchalamon@gmail.com>
  *
- * @deprecated
+ * @deprecated since Mercure 0.5
  */
 interface PublisherInterface
 {
