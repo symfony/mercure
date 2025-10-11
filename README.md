@@ -12,21 +12,22 @@ Getting Started
 ---------------
 
 ```
-$ composer require symfony/mercure
+$ composer require symfony/mercure lcobucci/jwt
 ```
 
 ```php
 // change these values accordingly to your hub installation
-define('HUB_URL', 'https://demo.mercure.rocks/.well-known/mercure');
-define('JWT', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyJmb28iLCJiYXIiXSwicHVibGlzaCI6WyJmb28iXX19.LRLvirgONK13JgacQ_VbcjySbVhkSmHy3IznH3tA9PM');
+const HUB_URL = 'https://demo.mercure.rocks/.well-known/mercure';
+const JWT_SECRET = '!ChangeThisMercureHubJWTSecretKey!';
 
-use Symfony\Component\Mercure\Hub;
-use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
-use Symfony\Component\Mercure\Update;
+// Set up the JWT token provider
+// Alternatively, you can use the \Symfony\Component\Mercure\Jwt\StaticTokenProvider if you already have a JWT token
+$jwFactory = new \Symfony\Component\Mercure\Jwt\LcobucciFactory(JWT_SECRET);
+$provider = new \Symfony\Component\Mercure\Jwt\FactoryTokenProvider($jwFactory, publish: ['*']);
 
-$hub = new Hub(HUB_URL, new StaticTokenProvider(JWT));
+$hub = new \Symfony\Component\Mercure\Hub(HUB_URL, $provider);
 // Serialize the update, and dispatch it to the hub, that will broadcast it to the clients
-$id = $hub->publish(new Update('https://example.com/books/1.jsonld', 'Hi from Symfony!'));
+$id = $hub->publish(new \Symfony\Component\Mercure\Update('https://example.com/books/1.jsonld', 'Hi from Symfony!'));
 ```
 
 Resources
