@@ -45,7 +45,7 @@ class HubTest extends TestCase
             return new MockResponse('id');
         });
 
-        if (method_exists($httpClient, 'withOptions')) {
+        if (method_exists($httpClient, 'withOptions')) { // @phpstan-ignore-line
             $httpClient = $httpClient->withOptions([
                 'headers' => [
                     'Content-Type' => 'application/json',
