@@ -31,14 +31,12 @@ trigger_deprecation('symfony/mercure', '0.5', 'Class "%s" is deprecated, use "%s
  */
 final class TraceablePublisher implements PublisherInterface, ResetInterface
 {
-    private $publisher;
-    private $stopwatch;
-    private $messages = [];
+    private array $messages = [];
 
-    public function __construct(PublisherInterface $publisher, Stopwatch $stopwatch)
-    {
-        $this->publisher = $publisher;
-        $this->stopwatch = $stopwatch;
+    public function __construct(
+        private PublisherInterface $publisher,
+        private Stopwatch $stopwatch,
+    ) {
     }
 
     public function __invoke(Update $update): string
@@ -80,8 +78,6 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
 
     public function getMemory(): int
     {
-        return (int) array_sum(array_map(function ($a) {
-            return $a['memory'];
-        }, $this->messages));
+        return (int) array_sum(array_map(static fn ($a) => $a['memory'], $this->messages));
     }
 }

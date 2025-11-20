@@ -18,27 +18,22 @@ use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 
 final class MockHub implements HubInterface
 {
-    private $url;
-    private $jwtProvider;
+    /**
+     * @var callable
+     */
     private $publisher;
-    private $jwtFactory;
-    private $publicUrl;
 
     /**
      * @param (callable(Update): string) $publisher
      */
     public function __construct(
-        string $url,
-        TokenProviderInterface $jwtProvider,
+        private readonly string $url,
+        private readonly TokenProviderInterface $jwtProvider,
         callable $publisher,
-        ?TokenFactoryInterface $jwtFactory = null,
-        ?string $publicUrl = null
+        private readonly ?TokenFactoryInterface $jwtFactory = null,
+        private readonly ?string $publicUrl = null,
     ) {
-        $this->url = $url;
-        $this->jwtProvider = $jwtProvider;
         $this->publisher = $publisher;
-        $this->jwtFactory = $jwtFactory;
-        $this->publicUrl = $publicUrl;
     }
 
     public function getUrl(): string

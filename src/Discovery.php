@@ -22,11 +22,8 @@ use Symfony\Component\WebLink\Link;
  */
 final class Discovery
 {
-    private $registry;
-
-    public function __construct(HubRegistry $registry)
+    public function __construct(private readonly HubRegistry $registry)
     {
-        $this->registry = $registry;
     }
 
     /**

@@ -20,15 +20,11 @@ namespace Symfony\Component\Mercure\Jwt;
  */
 final class FactoryTokenProvider implements TokenProviderInterface
 {
-    private $factory;
-    private $subscribe;
-    private $publish;
-
-    public function __construct(TokenFactoryInterface $factory, array $subscribe = [], array $publish = [])
-    {
-        $this->factory = $factory;
-        $this->subscribe = $subscribe;
-        $this->publish = $publish;
+    public function __construct(
+        private readonly TokenFactoryInterface $factory,
+        private readonly array $subscribe = [],
+        private readonly array $publish = [],
+    ) {
     }
 
     public function getJwt(): string

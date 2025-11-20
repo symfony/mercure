@@ -24,14 +24,8 @@ use Symfony\Component\Mercure\Update;
  */
 final class UpdateHandler
 {
-    private $hub;
-
-    /**
-     * @param HubInterface|PublisherInterface $hub
-     */
-    public function __construct($hub)
+    public function __construct(private readonly HubInterface|PublisherInterface $hub)
     {
-        $this->hub = $hub;
     }
 
     public function __invoke(Update $update)

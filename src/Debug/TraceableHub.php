@@ -29,14 +29,12 @@ use Symfony\Contracts\Service\ResetInterface;
  */
 final class TraceableHub implements HubInterface, ResetInterface
 {
-    private $hub;
-    private $stopwatch;
-    private $messages = [];
+    private array $messages = [];
 
-    public function __construct(HubInterface $hub, Stopwatch $stopwatch)
-    {
-        $this->hub = $hub;
-        $this->stopwatch = $stopwatch;
+    public function __construct(
+        private HubInterface $hub,
+        private Stopwatch $stopwatch,
+    ) {
     }
 
     public function getUrl(): string
