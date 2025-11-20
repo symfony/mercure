@@ -24,7 +24,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  *
  * @experimental
  */
-final class Hub implements  RemoteHubInterface
+final class Hub implements RemoteHubInterface
 {
     public function __construct(
         private readonly string $url,
