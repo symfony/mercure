@@ -1,0 +1,30 @@
+<?php
+
+/*
+ * This file is part of the Mercure Component project.
+ *
+ * (c) Kévin Dunglas <dunglas@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Symfony\Component\Mercure;
+
+use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
+use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+
+/**
+ * @author Saif Eddin Gmati <azjezz@protonmail.com>
+ *
+ * @experimental
+ */
+interface RemoteHubInterface extends HubInterface
+{
+    /**
+     * Returns the Hub internal URL.
+     */
+    public function getUrl(): string;
+}

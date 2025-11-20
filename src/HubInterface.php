@@ -24,22 +24,12 @@ use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 interface HubInterface
 {
     /**
-     * Returns the Hub internal URL.
-     */
-    public function getUrl(): string;
-
-    /**
      * Returns the Hub public URL.
      *
-     * If the public URL is not configured, this method MUST return
-     * the internal URL {@see HubInterface::getUrl()}.
+     * If the public URL is not configured and the hub also implements the {@see RemoteHubInterface}, this method MUST return
+     * the internal URL {@see RemoteHubInterface::getUrl()}.
      */
     public function getPublicUrl(): string;
-
-    /**
-     * Return the token provider used by this Hub.
-     */
-    public function getProvider(): TokenProviderInterface;
 
     /**
      * Return the token factory associated with this Hub.
