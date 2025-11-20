@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure;
 
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
-use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 
 /**
  * @author Saif Eddin Gmati <azjezz@protonmail.com>

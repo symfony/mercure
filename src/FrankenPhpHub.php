@@ -13,11 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
-use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
-use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
-use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
  * @author Saif Eddin Gmati <azjezz@protonmail.com>
@@ -26,15 +22,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final class FrankenPhpHub implements HubInterface
 {
-    private $publicUrl;
-    private $jwtFactory;
-
     public function __construct(
-        string $publicUrl,
-        ?TokenFactoryInterface $jwtFactory = null
+        private readonly string $publicUrl,
+        private readonly ?TokenFactoryInterface $jwtFactory = null,
     ) {
-        $this->publicUrl = $publicUrl;
-        $this->jwtFactory = $jwtFactory;
     }
 
     public function getPublicUrl(): string
