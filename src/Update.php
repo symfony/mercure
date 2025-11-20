@@ -25,28 +25,23 @@ namespace Symfony\Component\Mercure;
  */
 final class Update
 {
-    private $topics;
-    private $data;
-    private $private;
-    private $id;
-    private $type;
-    private $retry;
+    /**
+     * @var string[]
+     */
+    private readonly array $topics;
 
     /**
      * @param string|string[] $topics
      */
-    public function __construct($topics, string $data = '', bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null)
-    {
-        if (!\is_array($topics) && !\is_string($topics)) {
-            throw new \InvalidArgumentException('$topics must be an array of strings or a string.');
-        }
-
+    public function __construct(
+        array|string $topics,
+        private readonly string $data = '',
+        private readonly bool $private = false,
+        private readonly ?string $id = null,
+        private readonly ?string $type = null,
+        private readonly ?int $retry = null,
+    ) {
         $this->topics = (array) $topics;
-        $this->data = $data;
-        $this->private = $private;
-        $this->id = $id;
-        $this->type = $type;
-        $this->retry = $retry;
     }
 
     public function getTopics(): array

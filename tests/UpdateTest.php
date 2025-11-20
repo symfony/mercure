@@ -42,12 +42,4 @@ class UpdateTest extends TestCase
             [['https://mercure.rocks', 'https://github.com/dunglas/mercure'], 'payload'],
         ];
     }
-
-    public function testInvalidTopic()
-    {
-        $this->expectException(\InvalidArgumentException::class);
-
-        // @phpstan-ignore-next-line
-        new Update(1, 'data');
-    }
 }

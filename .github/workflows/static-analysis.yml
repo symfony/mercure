@@ -2,6 +2,9 @@ name: "static analysis"
 
 on: ["pull_request", "push"]
 
+permissions:
+  contents: read
+
 jobs:
   unit-tests:
     name: "static analysis"
@@ -10,12 +13,14 @@ jobs:
 
     steps:
       - name: "checkout"
-        uses: "actions/checkout@v4"
+        uses: "actions/checkout@v5"
+        with:
+          persist-credentials: false
 
       - name: "installing PHP"
         uses: "shivammathur/setup-php@v2"
         with:
-          php-version: "8.3"
+          php-version: "8.4"
           ini-values: memory_limit=-1
           tools: composer:v2, phpstan, cs2pr
 

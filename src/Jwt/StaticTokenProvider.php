@@ -20,11 +20,8 @@ namespace Symfony\Component\Mercure\Jwt;
  */
 final class StaticTokenProvider implements TokenProviderInterface
 {
-    private $token;
-
-    public function __construct(string $token)
+    public function __construct(private readonly string $token)
     {
-        $this->token = $token;
     }
 
     public function getJwt(): string

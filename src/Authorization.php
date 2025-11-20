@@ -25,22 +25,18 @@ final class Authorization
 {
     private const MERCURE_AUTHORIZATION_COOKIE_NAME = 'mercureAuthorization';
 
-    private $registry;
-    private $cookieLifetime;
-    /**
-     * @var Cookie::SAMESITE_*|null|null
-     */
-    private $cookieSameSite;
+    private readonly int $cookieLifetime;
 
     /**
      * @param int|null                $cookieLifetime in seconds, 0 for the current session, null to default to the value of "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0. The "exp" field of the JWT will be set accordingly if not set explicitly, defaults to 1h in case of session cookies.
      * @param Cookie::SAMESITE_*|null $cookieSameSite
      */
-    public function __construct(HubRegistry $registry, ?int $cookieLifetime = null, ?string $cookieSameSite = Cookie::SAMESITE_STRICT)
-    {
-        $this->registry = $registry;
+    public function __construct(
+        private readonly HubRegistry $registry,
+        ?int $cookieLifetime = null,
+        private readonly ?string $cookieSameSite = Cookie::SAMESITE_STRICT,
+    ) {
         $this->cookieLifetime = $cookieLifetime ?? (int) \ini_get('session.cookie_lifetime');
-        $this->cookieSameSite = $cookieSameSite;
     }
 
     /**
@@ -51,7 +47,7 @@ final class Authorization
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
      */
-    public function setCookie(Request $request, $subscribe = [], $publish = [], array $additionalClaims = [], ?string $hub = null): void
+    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null): void
     {
         $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
     }
@@ -74,7 +70,7 @@ final class Authorization
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
      */
-    public function createCookie(Request $request, $subscribe = [], $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
+    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();

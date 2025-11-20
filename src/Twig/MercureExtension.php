@@ -26,15 +26,11 @@ use Twig\TwigFunction;
  */
 final class MercureExtension extends AbstractExtension
 {
-    private $hubRegistry;
-    private $authorization;
-    private $requestStack;
-
-    public function __construct(HubRegistry $hubRegistry, ?Authorization $authorization = null, ?RequestStack $requestStack = null)
-    {
-        $this->hubRegistry = $hubRegistry;
-        $this->authorization = $authorization;
-        $this->requestStack = $requestStack;
+    public function __construct(
+        private readonly HubRegistry $hubRegistry,
+        private readonly ?Authorization $authorization = null,
+        private readonly ?RequestStack $requestStack = null,
+    ) {
     }
 
     public function getFunctions(): array
@@ -48,7 +44,7 @@ final class MercureExtension extends AbstractExtension
      *
      * @return string The URL of the hub with the appropriate "topic" query parameters (if any)
      */
-    public function mercure($topics = null, array $options = []): string
+    public function mercure(string|array|null $topics = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
         $url = $this->hubRegistry->getHub($hub)->getPublicUrl();

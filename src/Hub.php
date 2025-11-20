@@ -26,23 +26,13 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final class Hub implements HubInterface
 {
-    private $url;
-    private $jwtProvider;
-    private $jwtFactory;
-    private $publicUrl;
-    private $httpClient;
-
     public function __construct(
-        string $url,
-        TokenProviderInterface $jwtProvider,
-        ?TokenFactoryInterface $jwtFactory = null,
-        ?string $publicUrl = null,
-        ?HttpClientInterface $httpClient = null
+        private readonly string $url,
+        private readonly TokenProviderInterface $jwtProvider,
+        private readonly ?TokenFactoryInterface $jwtFactory = null,
+        private readonly ?string $publicUrl = null,
+        private ?HttpClientInterface $httpClient = null,
     ) {
-        $this->url = $url;
-        $this->jwtProvider = $jwtProvider;
-        $this->publicUrl = $publicUrl;
-        $this->jwtFactory = $jwtFactory;
         $this->httpClient = $httpClient ?? HttpClient::create();
     }
 
