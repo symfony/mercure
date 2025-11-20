@@ -46,7 +46,7 @@ final class FrankenPhpHub implements HubInterface
             $update->isPrivate(),
             $update->getId(),
             $update->getType(),
-            $update->getRetry()
+            $update->getRetry(),
         );
     }
 }
