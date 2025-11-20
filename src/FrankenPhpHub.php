@@ -16,7 +16,7 @@ namespace Symfony\Component\Mercure;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 
 /**
- * @author Saif Eddin Gmati <azjezz@protonmail.com>
+ * @author Kévin Dunglas <kevin@dunglas.dev>
  *
  * @experimental
  */
