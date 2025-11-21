@@ -171,6 +171,8 @@ final class Authorization
 
     private function updateCookies(Request $request, ?string $hub, Cookie $cookie): void
     {
+        $hub = (string) $hub;
+
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (\array_key_exists($hub, $cookies)) {
             $message = \sprintf('The "mercureAuthorization" cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
