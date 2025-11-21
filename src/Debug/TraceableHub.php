@@ -16,6 +16,7 @@ namespace Symfony\Component\Mercure\Debug;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Component\Mercure\RemoteHubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Contracts\Service\ResetInterface;
@@ -27,7 +28,7 @@ use Symfony\Contracts\Service\ResetInterface;
  *
  * @experimental
  */
-final class TraceableHub implements HubInterface, ResetInterface
+final class TraceableHub implements RemoteHubInterface, ResetInterface
 {
     private array $messages = [];
 
@@ -39,7 +40,11 @@ final class TraceableHub implements HubInterface, ResetInterface
 
     public function getUrl(): string
     {
-        return $this->hub->getUrl();
+        if (method_exists($this->hub, 'getUrl')) {
+            return $this->hub->getUrl();
+        }
+
+        throw new \RuntimeException('The getUrl() method is not implemented by the decorated hub');
     }
 
     public function getPublicUrl(): string
@@ -49,7 +54,11 @@ final class TraceableHub implements HubInterface, ResetInterface
 
     public function getProvider(): TokenProviderInterface
     {
-        return $this->hub->getProvider();
+        if (method_exists($this->hub, 'getProvider')) {
+            return $this->hub->getProvider();
+        }
+
+        throw new \RuntimeException('The getUrl() method is not implemented by the decorated hub');
     }
 
     public function getFactory(): ?TokenFactoryInterface
