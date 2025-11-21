@@ -44,7 +44,7 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
             return $this->hub->getUrl();
         }
 
-        throw new \RuntimeException('The getUrl() method is not implemented by the decorated hub');
+        throw new \RuntimeException('The getUrl() method is not implemented by the decorated hub.');
     }
 
     public function getPublicUrl(): string
@@ -58,7 +58,7 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
             return $this->hub->getProvider();
         }
 
-        throw new \RuntimeException('The getUrl() method is not implemented by the decorated hub');
+        throw new \RuntimeException('The getUrl() method is not implemented by the decorated hub.');
     }
 
     public function getFactory(): ?TokenFactoryInterface
