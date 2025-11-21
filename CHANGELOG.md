@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.7.0
+-----
+
+* Add support for FrankenPHP's mercure_publish() function
+* Compatibility with Symfony 8
+* Lazy-load the Twig extension
+* Drop support for unmaintained PHP and Symfony versions 
+
 0.6.4
 -----
 
