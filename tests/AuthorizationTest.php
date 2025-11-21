@@ -72,7 +72,7 @@ class AuthorizationTest extends TestCase
         $authorization = new Authorization($registry, 0, Cookie::SAMESITE_LAX);
         $authorization->setCookie($request, ['foo'], ['bar'], ['x-foo' => 'bar']);
 
-        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[''];
         $this->assertNotNull($cookie->getValue());
         $this->assertSame(0, $cookie->getExpiresTime());
         $this->assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
@@ -96,7 +96,7 @@ class AuthorizationTest extends TestCase
         $request = Request::create('https://example.com');
         $authorization->clearCookie($request);
 
-        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[''];
         $this->assertNull($cookie->getValue());
         $this->assertSame(1, $cookie->getExpiresTime());
     }
@@ -205,7 +205,7 @@ class AuthorizationTest extends TestCase
         $authorization = new Authorization($registry);
         $authorization->setCookie($request, null, null, ['x-foo' => 'bar']);
 
-        $cookie = $request->attributes->get('_mercure_authorization_cookies')[null];
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[''];
         $this->assertNotNull($cookie->getValue());
     }
 }
