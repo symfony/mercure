@@ -177,7 +177,7 @@ final class Authorization
             throw new RuntimeException($message);
         }
 
-        $cookies[$hub] = $cookie;
+        $cookies[(string) $hub] = $cookie;
         $request->attributes->set('_mercure_authorization_cookies', $cookies);
     }
 }
