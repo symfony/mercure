@@ -32,6 +32,7 @@ final class Update
 
     /**
      * @param string|string[] $topics
+     * @param ?string $type SSE type: https://developer.mozilla.org/en-US/docs/Web/API/EventSource
      */
     public function __construct(
         array|string $topics,
