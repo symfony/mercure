@@ -35,7 +35,7 @@ final class MercureExtension extends AbstractExtension
 
     public function getFunctions(): array
     {
-        return [new TwigFunction('mercure', [$this, 'mercure'])];
+        return [new TwigFunction('mercure', $this->mercure(...))];
     }
 
     /**

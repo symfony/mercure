@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.7.2
+-----
+
+* Revert lazy-loading the Twig extension to fix compatibility with Symfony 6.4
+
 0.7.1
 -----
 
