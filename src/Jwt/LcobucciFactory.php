@@ -82,6 +82,17 @@ final class LcobucciFactory implements TokenFactoryInterface
 
         $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
 
+        foreach (['publish', 'subscribe'] as $claim) {
+            if (!isset($additionalClaims['mercure'][$claim]) || !\is_array($additionalClaims['mercure'][$claim])) {
+                continue;
+            }
+
+            $additionalClaims['mercure'][$claim] = array_map(
+                static fn ($entry) => \is_string($entry) ? ['match' => $entry] : $entry,
+                $additionalClaims['mercure'][$claim],
+            );
+        }
+
         foreach ($additionalClaims as $name => $value) {
             switch ($name) {
                 case RegisteredClaims::AUDIENCE:

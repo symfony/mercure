@@ -39,20 +39,30 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|null                                                                                                                       $topics  A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
-     * @param array{subscribe?: string[]|string, publish?: string[]|string, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
+     * @param string|array<string|array<string, string>>|null                                                                                            $matchers A matcher value or list of matchers to subscribe with. Strings produce `match=<value>` (exact). Single-key arrays let you pick another matcher type, e.g. `['matchURLPattern' => 'https://example.com/books/:id']` or `['matchRegexp' => '^chat-room-[0-9]+$']`. Pass `null` to get the bare hub URL (useful for publishing in JavaScript).
+     * @param array{subscribe?: string|array<string|array<string, mixed>>, publish?: string|array<string|array<string, mixed>>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options  Options forwarded to the JWT factory
      *
-     * @return string The URL of the hub with the appropriate "topic" query parameters (if any)
+     * @return string The URL of the hub with the appropriate "match*" query parameters (if any)
      */
-    public function mercure(string|array|null $topics = null, array $options = []): string
+    public function mercure(string|array|null $matchers = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
         $url = $this->hubRegistry->getHub($hub)->getPublicUrl();
-        if (null !== $topics) {
+        if (null !== $matchers) {
             // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
             $separator = '?';
-            foreach ((array) $topics as $topic) {
-                $url .= $separator.'topic='.rawurlencode($topic);
+            foreach ((array) $matchers as $matcher) {
+                if (\is_string($matcher)) {
+                    $param = 'match';
+                    $value = $matcher;
+                } elseif (\is_array($matcher) && 1 === \count($matcher)) {
+                    $param = (string) array_key_first($matcher);
+                    $value = (string) reset($matcher);
+                } else {
+                    throw new \InvalidArgumentException('Each matcher must be a string or a single-key array like ["matchURLPattern" => "https://example.com/books/:id"].');
+                }
+
+                $url .= $separator.$param.'='.rawurlencode($value);
                 if ('?' === $separator) {
                     $separator = '&';
                 }

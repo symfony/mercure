@@ -45,10 +45,29 @@ class MercureExtensionTest extends TestCase
 
         $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
 
-        $url = $extension->mercure(['https://foo/bar'], ['subscribe' => ['https://foo/{id}']]);
+        $url = $extension->mercure(['https://foo/bar'], ['subscribe' => [['match' => 'https://foo/:id', 'matchType' => 'URLPattern']]]);
 
-        $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Ffoo%2Fbar', $url);
+        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar', $url);
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
+    }
+
+    public function testMercureWithTypedMatcher()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class)
+        ));
+
+        $extension = new MercureExtension($registry);
+
+        $url = $extension->mercure([
+            'https://foo/bar',
+            ['matchURLPattern' => 'https://example.com/books/:id'],
+        ]);
+
+        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&matchURLPattern=https%3A%2F%2Fexample.com%2Fbooks%2F%3Aid', $url);
     }
 
     public function testMercureLastEventId()
@@ -72,6 +91,6 @@ class MercureExtensionTest extends TestCase
             'lastEventId' => 'urn:uuid:13697bc5-e3c6-48cf-99c8-9d64c26f1a2f',
         ]);
 
-        $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Ffoo%2Fbar&lastEventID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f&Last-Event-ID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f', $url);
+        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&lastEventID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f&Last-Event-ID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f', $url);
     }
 }

@@ -30,7 +30,7 @@ final class FactoryTokenProviderTest extends TestCase
         $provider = new FactoryTokenProvider($factory, [], ['*']);
 
         $this->assertSame(
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ZTK3JhEKO1338LAgRMw6j0lkGRMoaZtU4EtGiAylAns',
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.E1oenctr6Hv3O4ANuMyl__yXD-_kv0Mj0PH41VG_Ikg',
             $provider->getJwt()
         );
     }

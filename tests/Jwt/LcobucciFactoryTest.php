@@ -90,7 +90,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing');
 
         $this->assertSame(
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.AHKMv2PQOGq5M8VhEM1Snf7QMHoTEyeuY0-L7GjRGkaygb3TyRWFO__uvIkStj1shOykO293tqGd_pijtRrbvul4ZdOQKYBjOxk7tNsQ_gQgepptneYr4eL8F9r2_KgUVrb-xcl0YzobH389OKBhuJ8HRQ-gADniBqbSuURwFyKXcEXz-GiZ_y9hTJ4tQ4bY28SlER_-LpjRCadUik4SqXLt--8VIoJ7zHvxCSOMIHFbLZ1CFaycMuXly1w7W8XKCfpshCobbi5Xt2QndAhTgpfvmnx1mn7e1ng9QDYzNHqNb6iZzxSbZ8bnttCwVv7uuBU2tEDxBXQB-TeVSD71pw',
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.AKDKcK8ihBBGZyllblEj1_0RsmoYItpa_BiuvW4ylu96ACu7M-5WEbTUUYbHOUZO6_Q0tavaHXmgLj9OHBghRisTD4Ksy8X_wjmWgne5f7l2a6PoiM2AKeG0fheiLswgwXUENGxy78JVexnDg1ltnpGYkIrmwscHWOeXc6HuAaZSjMjvjRNyBf06i65n5UALA-f9vRIsi5aTZyToAG0ddXnCRJ9Kus2uoC8dO3ra-GDJqb9hncHY9MTUjhEs9D25aTLEyi2B1j0Lx-yKSqjEHxJbGiPmzGqqdlpygdgBKLY-4zrHwNYkvBJxQu6UoeECjxdLOsNfCaxVpV3KhIbwbw',
             $factory->create([], ['*'])
         );
     }
@@ -120,7 +120,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ZTK3JhEKO1338LAgRMw6j0lkGRMoaZtU4EtGiAylAns',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.E1oenctr6Hv3O4ANuMyl__yXD-_kv0Mj0PH41VG_Ikg',
         ];
 
         yield [
@@ -129,7 +129,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ERwjuquA1VXjCx_Q05zHHIVWU40maCOLsu493IKD4osTk0l0bTs9t9S8_tgM32Ih',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.xv-5nq5_C8GruGA3fxVO-kaKIZZW-02YVX1tKpHPhBXPQaujkm9nlG8ekydUMBxg',
         ];
 
         yield [
@@ -138,7 +138,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.eMSnFpi3G0i0lvM_f55E5vUcxkT1GqyVY7qu7c_mZTjKAh4wX3mIJOGoftX7WQRlE1qTVs0OsJ0qyeyet3Yb-g',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.6YATiOLr114OiyR_pRNOYQwqu-jKO8H3uMsd8pfYNZpQeyx3sF2q4iZpiQmFKmNERJw60_01HBJGRtLgrcWJ4g',
         ];
 
         yield [
@@ -153,7 +153,16 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
                     'payload' => ['foo' => 'bar'],
                 ],
             ],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsib3ZlcnJpZGRlbiJdLCJzdWJzY3JpYmUiOlsib3ZlcnJpZGRlbiJdLCJwYXlsb2FkIjp7ImZvbyI6ImJhciJ9fX0.owz54sSlMuVq2PqtBGFPdrYSXvMKTQc6UQdLEMOlP5s',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoib3ZlcnJpZGRlbiJ9XSwic3Vic2NyaWJlIjpbeyJtYXRjaCI6Im92ZXJyaWRkZW4ifV0sInBheWxvYWQiOnsiZm9vIjoiYmFyIn19fQ.eb406PdE35QmiOpVGzSWYheoAj1sJYHCogsvRzcd1Wk',
+        ];
+
+        yield [
+            'secret' => 'looooooooooooongenoughtestsecret',
+            'algorithm' => 'hmac.sha256',
+            'subscribe' => [['match' => 'https://example.com/books/:id', 'matchType' => 'URLPattern']],
+            'publish' => [['match' => '*']],
+            'additionalClaims' => [],
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbeyJtYXRjaCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYm9va3MvOmlkIiwibWF0Y2hUeXBlIjoiVVJMUGF0dGVybiJ9XX19.53daJa3TFN41aXt54MUstn_Gq4T2syMJit-2WU3nNGs',
         ];
     }
 }
