@@ -31,7 +31,7 @@ use Symfony\Component\Mercure\Update;
  */
 class AuthorizationTest extends TestCase
 {
-    public function testJwtLifetime()
+    public function testJwtLifetime(): void
     {
         if (!class_exists(InMemory::class)) {
             $this->markTestSkipped('"lcobucci/jwt" is not installed');
@@ -40,7 +40,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600)
         ));
 
@@ -52,7 +52,7 @@ class AuthorizationTest extends TestCase
         $this->assertIsNumeric($payload['exp']);
     }
 
-    public function testSetCookie()
+    public function testSetCookie(): void
     {
         $tokenFactory = $this->createMock(TokenFactoryInterface::class);
         $tokenFactory
@@ -64,7 +64,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             $tokenFactory
         ));
 
@@ -78,12 +78,12 @@ class AuthorizationTest extends TestCase
         $this->assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
     }
 
-    public function testClearCookie()
+    public function testClearCookie(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             new class implements TokenFactoryInterface {
                 public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
                 {
@@ -104,7 +104,7 @@ class AuthorizationTest extends TestCase
     /**
      * @dataProvider provideApplicableCookieDomains
      */
-    public function testApplicableCookieDomains(?string $expected, string $hubUrl, string $requestUrl)
+    public function testApplicableCookieDomains(?string $expected, string $hubUrl, string $requestUrl): void
     {
         if (!class_exists(InMemory::class)) {
             $this->markTestSkipped('"lcobucci/jwt" is not installed');
@@ -113,7 +113,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600)
         ));
 
@@ -136,7 +136,7 @@ class AuthorizationTest extends TestCase
     /**
      * @dataProvider provideNonApplicableCookieDomains
      */
-    public function testNonApplicableCookieDomains(string $hubUrl, string $requestUrl)
+    public function testNonApplicableCookieDomains(string $hubUrl, string $requestUrl): void
     {
         if (!class_exists(InMemory::class)) {
             $this->markTestSkipped('"lcobucci/jwt" is not installed');
@@ -145,7 +145,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600)
         ));
 
@@ -163,14 +163,14 @@ class AuthorizationTest extends TestCase
         yield ['https://mercure.internal.com', 'https://external.com'];
     }
 
-    public function testSetMultipleCookies()
+    public function testSetMultipleCookies(): void
     {
         $this->expectException(RuntimeException::class);
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             new class implements TokenFactoryInterface {
                 public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
                 {
@@ -185,7 +185,7 @@ class AuthorizationTest extends TestCase
         $authorization->clearCookie($request);
     }
 
-    public function testSetNullCookieTopics()
+    public function testSetNullCookieTopics(): void
     {
         $tokenFactory = $this->createMock(TokenFactoryInterface::class);
         $tokenFactory
@@ -197,7 +197,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             $tokenFactory
         ));
 

@@ -20,7 +20,7 @@ use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 
 final class FactoryTokenProviderTest extends TestCase
 {
-    public function testGetToken()
+    public function testGetToken(): void
     {
         if (!class_exists(Key\InMemory::class)) {
             $this->markTestSkipped('requires lcobucci/jwt.');

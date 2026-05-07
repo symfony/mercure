@@ -24,7 +24,7 @@ class UpdateTest extends TestCase
     /**
      * @dataProvider updateProvider
      */
-    public function testCreateUpdate($topics, $data, bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null)
+    public function testCreateUpdate($topics, $data, bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null): void
     {
         $update = new Update($topics, $data, $private, $id, $type, $retry);
         $this->assertSame((array) $topics, $update->getTopics());

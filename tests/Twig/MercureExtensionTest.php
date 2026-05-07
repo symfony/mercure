@@ -30,12 +30,12 @@ use Symfony\Component\Mercure\Update;
  */
 class MercureExtensionTest extends TestCase
 {
-    public function testMercure()
+    public function testMercure(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -51,12 +51,12 @@ class MercureExtensionTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
-    public function testMercureWithTypedMatcher()
+    public function testMercureWithTypedMatcher(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -70,12 +70,12 @@ class MercureExtensionTest extends TestCase
         $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&matchURLPattern=https%3A%2F%2Fexample.com%2Fbooks%2F%3Aid', $url);
     }
 
-    public function testMercureLastEventId()
+    public function testMercureLastEventId(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string {
+            static function (Update $u): string {
                 return 'dummy';
             },
             $this->createMock(TokenFactoryInterface::class)

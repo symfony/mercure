@@ -39,7 +39,7 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|array<string|array<string, string>>|null                                                                                            $matchers A matcher value or list of matchers to subscribe with. Strings produce `match=<value>` (exact). Single-key arrays let you pick another matcher type, e.g. `['matchURLPattern' => 'https://example.com/books/:id']` or `['matchRegexp' => '^chat-room-[0-9]+$']`. Pass `null` to get the bare hub URL (useful for publishing in JavaScript).
+     * @param string|array<string|array<string, string>>|null                                                                                                                                                $matchers A matcher value or list of matchers to subscribe with. Strings produce `match=<value>` (exact). Single-key arrays let you pick another matcher type, e.g. `['matchURLPattern' => 'https://example.com/books/:id']` or `['matchRegexp' => '^chat-room-[0-9]+$']`. Pass `null` to get the bare hub URL (useful for publishing in JavaScript).
      * @param array{subscribe?: string|array<string|array<string, mixed>>, publish?: string|array<string|array<string, mixed>>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options  Options forwarded to the JWT factory
      *
      * @return string The URL of the hub with the appropriate "match*" query parameters (if any)

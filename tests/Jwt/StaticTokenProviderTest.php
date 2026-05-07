@@ -20,7 +20,7 @@ class StaticTokenProviderTest extends TestCase
 {
     public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtZXJjdXJlLXRlc3QiLCJuYW1lIjoiS8OpdmluIER1bmdsYXMiLCJpYXQiOjE1MTYyMzkwMjJ9.n0KvJ31TCswaK7KuHiN22cLzpjC2UT2rhWqhIDprfmA';
 
-    public function testGetToken()
+    public function testGetToken(): void
     {
         $provider = new StaticTokenProvider(self::JWT);
         $this->assertSame(self::JWT, $provider->getJwt());

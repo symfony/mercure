@@ -33,7 +33,7 @@ class PublisherTest extends TestCase
     public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyIqIl0sInB1Ymxpc2giOlsiKiJdfX0.M1yJUov4a6oLrigTqBZQO_ohWUsg3Uz1bnLD4MIyWLo';
     public const AUTH_HEADER = 'Authorization: Bearer '.self::JWT;
 
-    public function testPublish()
+    public function testPublish(): void
     {
         $httpClient = new MockHttpClient(function (string $method, string $url, array $options = []): ResponseInterface {
             $this->assertSame('POST', $method);
@@ -57,7 +57,7 @@ class PublisherTest extends TestCase
         $this->assertSame('id', $id);
     }
 
-    public function testInvalidJwt()
+    public function testInvalidJwt(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The provided JWT is not valid');

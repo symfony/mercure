@@ -98,14 +98,14 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
 
     public function getDuration(): float
     {
-        return array_sum(array_map(function ($a) {
+        return array_sum(array_map(static function ($a) {
             return $a['duration'];
         }, $this->messages));
     }
 
     public function getMemory(): int
     {
-        return (int) array_sum(array_map(function ($a) {
+        return (int) array_sum(array_map(static function ($a) {
             return $a['memory'];
         }, $this->messages));
     }
