@@ -32,6 +32,7 @@ final class Hub implements RemoteHubInterface
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         private readonly ?string $publicUrl = null,
         private ?HttpClientInterface $httpClient = null,
+        private readonly MercureVersion $version = MercureVersion::V1,
     ) {
         $this->httpClient = $httpClient ?? HttpClient::create();
     }
@@ -54,6 +55,11 @@ final class Hub implements RemoteHubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
+    }
+
+    public function getVersion(): MercureVersion
+    {
+        return $this->version;
     }
 
     public function publish(Update $update): string

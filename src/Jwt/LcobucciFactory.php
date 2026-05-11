@@ -18,6 +18,8 @@ use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
+use Symfony\Component\Mercure\Internal\MatcherNormalizer;
+use Symfony\Component\Mercure\MercureVersion;
 
 final class LcobucciFactory implements TokenFactoryInterface
 {
@@ -38,12 +40,13 @@ final class LcobucciFactory implements TokenFactoryInterface
 
     private Configuration $configurations;
     private ?int $jwtLifetime;
+    private MercureVersion $version;
 
     /**
      * @param non-empty-string $secret
      * @param int|null         $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
      */
-    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '')
+    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '', MercureVersion $version = MercureVersion::V1)
     {
         if (!class_exists(Key\InMemory::class)) {
             throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
@@ -61,7 +64,16 @@ final class LcobucciFactory implements TokenFactoryInterface
             Key\InMemory::plainText($secret, $passphrase)
         );
 
-        $this->jwtLifetime = 0 === $jwtLifetime ? ((int) \ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
+        $this->jwtLifetime = match ($jwtLifetime) {
+            0 => (int) \ini_get('session.cookie_lifetime') ?: 3600,
+            default => $jwtLifetime,
+        };
+        $this->version = $version;
+    }
+
+    public function getVersion(): MercureVersion
+    {
+        return $this->version;
     }
 
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
@@ -74,10 +86,10 @@ final class LcobucciFactory implements TokenFactoryInterface
 
         $tokens = [];
         if (null !== $publish) {
-            $tokens['publish'] = (array) $publish;
+            $tokens['publish'] = MatcherNormalizer::forJwt((array) $publish, $this->version);
         }
         if (null !== $subscribe) {
-            $tokens['subscribe'] = (array) $subscribe;
+            $tokens['subscribe'] = MatcherNormalizer::forJwt((array) $subscribe, $this->version);
         }
 
         $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
@@ -87,9 +99,9 @@ final class LcobucciFactory implements TokenFactoryInterface
                 continue;
             }
 
-            $additionalClaims['mercure'][$claim] = array_map(
-                static fn ($entry) => \is_string($entry) ? ['match' => $entry] : $entry,
+            $additionalClaims['mercure'][$claim] = MatcherNormalizer::forJwt(
                 $additionalClaims['mercure'][$claim],
+                $this->version,
             );
         }
 

@@ -17,6 +17,8 @@ use Lcobucci\JWT\Signer\Key;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
+use Symfony\Component\Mercure\Matcher;
+use Symfony\Component\Mercure\MercureVersion;
 
 final class LcobucciFactoryTest extends TestCase
 {
@@ -93,6 +95,38 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.AKDKcK8ihBBGZyllblEj1_0RsmoYItpa_BiuvW4ylu96ACu7M-5WEbTUUYbHOUZO6_Q0tavaHXmgLj9OHBghRisTD4Ksy8X_wjmWgne5f7l2a6PoiM2AKeG0fheiLswgwXUENGxy78JVexnDg1ltnpGYkIrmwscHWOeXc6HuAaZSjMjvjRNyBf06i65n5UALA-f9vRIsi5aTZyToAG0ddXnCRJ9Kus2uoC8dO3ra-GDJqb9hncHY9MTUjhEs9D25aTLEyi2B1j0Lx-yKSqjEHxJbGiPmzGqqdlpygdgBKLY-4zrHwNYkvBJxQu6UoeECjxdLOsNfCaxVpV3KhIbwbw',
             $factory->create([], ['*'])
         );
+    }
+
+    /**
+     * @throws \JsonException
+     */
+    public function testCreateV0EmitsBareStrings(): void
+    {
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null, '', MercureVersion::V0);
+        $jwt = $factory->create(['https://example.com/books/{id}'], ['*']);
+
+        $payload = json_decode(base64_decode(explode('.', $jwt)[1], true), true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame(['https://example.com/books/{id}'], $payload['mercure']['subscribe']);
+        $this->assertSame(['*'], $payload['mercure']['publish']);
+    }
+
+    /**
+     * @throws \JsonException
+     */
+    public function testCreateV1AcceptsMatcherObjects(): void
+    {
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+        $jwt = $factory->create(
+            [Matcher::urlPattern('https://example.com/books/:id', ['role' => 'reader'])],
+            [Matcher::regexp('^chat-room-[0-9]+$')],
+        );
+
+        $payload = json_decode(base64_decode(explode('.', $jwt)[1], true), true, 512, \JSON_THROW_ON_ERROR);
+        $this->assertSame(
+            [['match' => 'https://example.com/books/:id', 'matchType' => 'URLPattern', 'payload' => ['role' => 'reader']]],
+            $payload['mercure']['subscribe'],
+        );
+        $this->assertSame([['match' => '^chat-room-[0-9]+$', 'matchType' => 'Regexp']], $payload['mercure']['publish']);
     }
 
     public function testInvalidAlgorithm(): void

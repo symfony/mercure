@@ -16,6 +16,7 @@ namespace Symfony\Component\Mercure\Debug;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
+use Symfony\Component\Mercure\MercureVersion;
 use Symfony\Component\Mercure\RemoteHubInterface;
 use Symfony\Component\Mercure\Update;
 use Symfony\Component\Stopwatch\Stopwatch;
@@ -64,6 +65,11 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->hub->getFactory();
+    }
+
+    public function getVersion(): MercureVersion
+    {
+        return $this->hub->getVersion();
     }
 
     public function publish(Update $update): string

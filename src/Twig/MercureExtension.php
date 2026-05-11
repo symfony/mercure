@@ -16,6 +16,8 @@ namespace Symfony\Component\Mercure\Twig;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\Internal\MatcherNormalizer;
+use Symfony\Component\Mercure\Matcher;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -39,29 +41,21 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|array<string|array<string, string>>|null                                                                                                                                                $matchers A matcher value or list of matchers to subscribe with. Strings produce `match=<value>` (exact). Single-key arrays let you pick another matcher type, e.g. `['matchURLPattern' => 'https://example.com/books/:id']` or `['matchRegexp' => '^chat-room-[0-9]+$']`. Pass `null` to get the bare hub URL (useful for publishing in JavaScript).
-     * @param array{subscribe?: string|array<string|array<string, mixed>>, publish?: string|array<string|array<string, mixed>>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options  Options forwarded to the JWT factory
+     * @param string|Matcher|array<string|Matcher|array<string, mixed>>|null                                                                                                                                                                 $matchers A matcher or list of matchers to subscribe with. Bare strings are interpreted using the hub's protocol version (`topic` on v0, `match`/exact on v1). Pass `null` to get the bare hub URL (useful for publishing in JavaScript).
+     * @param array{subscribe?: string|Matcher|array<string|Matcher|array<string, mixed>>, publish?: string|Matcher|array<string|Matcher|array<string, mixed>>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options  Options forwarded to the JWT factory
      *
-     * @return string The URL of the hub with the appropriate "match*" query parameters (if any)
+     * @return string The URL of the hub with the appropriate query parameters (if any)
      */
-    public function mercure(string|array|null $matchers = null, array $options = []): string
+    public function mercure(string|array|Matcher|null $matchers = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
-        $url = $this->hubRegistry->getHub($hub)->getPublicUrl();
+        $hubInstance = $this->hubRegistry->getHub($hub);
+        $url = $hubInstance->getPublicUrl();
         if (null !== $matchers) {
+            $matchers = \is_array($matchers) ? $matchers : [$matchers];
             // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
             $separator = '?';
-            foreach ((array) $matchers as $matcher) {
-                if (\is_string($matcher)) {
-                    $param = 'match';
-                    $value = $matcher;
-                } elseif (\is_array($matcher) && 1 === \count($matcher)) {
-                    $param = (string) array_key_first($matcher);
-                    $value = (string) reset($matcher);
-                } else {
-                    throw new \InvalidArgumentException('Each matcher must be a string or a single-key array like ["matchURLPattern" => "https://example.com/books/:id"].');
-                }
-
+            foreach (MatcherNormalizer::forQuery($matchers, $hubInstance->getVersion()) as [$param, $value]) {
                 $url .= $separator.$param.'='.rawurlencode($value);
                 if ('?' === $separator) {
                     $separator = '&';
