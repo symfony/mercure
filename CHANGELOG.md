@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.8
+---
+
+* Add support for the Mercure v1 protocol (coexists with v0)
+
 0.7.2
 -----
 
