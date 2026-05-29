@@ -17,6 +17,7 @@ use Lcobucci\JWT\Signer\Key;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Jwt\FactoryTokenProvider;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
+use Symfony\Component\Mercure\Matcher;
 
 final class FactoryTokenProviderTest extends TestCase
 {
@@ -27,7 +28,7 @@ final class FactoryTokenProviderTest extends TestCase
         }
 
         $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
-        $provider = new FactoryTokenProvider($factory, [], ['*']);
+        $provider = new FactoryTokenProvider($factory, [], [new Matcher('*')]);
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.E1oenctr6Hv3O4ANuMyl__yXD-_kv0Mj0PH41VG_Ikg',

@@ -18,8 +18,7 @@ use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
-use Symfony\Component\Mercure\Internal\MatcherNormalizer;
-use Symfony\Component\Mercure\MercureVersion;
+use Symfony\Component\Mercure\Matcher;
 
 final class LcobucciFactory implements TokenFactoryInterface
 {
@@ -40,13 +39,12 @@ final class LcobucciFactory implements TokenFactoryInterface
 
     private Configuration $configurations;
     private ?int $jwtLifetime;
-    private MercureVersion $version;
 
     /**
      * @param non-empty-string $secret
      * @param int|null         $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
      */
-    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '', MercureVersion $version = MercureVersion::V1)
+    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '')
     {
         if (!class_exists(Key\InMemory::class)) {
             throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
@@ -68,12 +66,6 @@ final class LcobucciFactory implements TokenFactoryInterface
             0 => (int) \ini_get('session.cookie_lifetime') ?: 3600,
             default => $jwtLifetime,
         };
-        $this->version = $version;
-    }
-
-    public function getVersion(): MercureVersion
-    {
-        return $this->version;
     }
 
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
@@ -86,24 +78,15 @@ final class LcobucciFactory implements TokenFactoryInterface
 
         $tokens = [];
         if (null !== $publish) {
-            $tokens['publish'] = MatcherNormalizer::forJwt((array) $publish, $this->version);
+            self::triggerStringDeprecations($publish, 'publish');
+            $tokens['publish'] = $publish;
         }
         if (null !== $subscribe) {
-            $tokens['subscribe'] = MatcherNormalizer::forJwt((array) $subscribe, $this->version);
+            self::triggerStringDeprecations($subscribe, 'subscribe');
+            $tokens['subscribe'] = $subscribe;
         }
 
         $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
-
-        foreach (['publish', 'subscribe'] as $claim) {
-            if (!isset($additionalClaims['mercure'][$claim]) || !\is_array($additionalClaims['mercure'][$claim])) {
-                continue;
-            }
-
-            $additionalClaims['mercure'][$claim] = MatcherNormalizer::forJwt(
-                $additionalClaims['mercure'][$claim],
-                $this->version,
-            );
-        }
 
         foreach ($additionalClaims as $name => $value) {
             switch ($name) {
@@ -138,5 +121,18 @@ final class LcobucciFactory implements TokenFactoryInterface
         return $builder
             ->getToken($this->configurations->signer(), $this->configurations->signingKey())
             ->toString();
+    }
+
+    /**
+     * @param array<int, string|Matcher|mixed> $matchers
+     */
+    private static function triggerStringDeprecations(array $matchers, string $claim): void
+    {
+        foreach ($matchers as $matcher) {
+            if (\is_string($matcher)) {
+                trigger_deprecation('symfony/mercure', '0.8', 'Passing a string as a topic is deprecated, use the "%s" class instead.', Matcher::class);
+                return;
+            }
+        }
     }
 }

@@ -25,7 +25,6 @@ final class FrankenPhpHub implements HubInterface
     public function __construct(
         private readonly string $publicUrl,
         private readonly ?TokenFactoryInterface $jwtFactory = null,
-        private readonly MercureVersion $version = MercureVersion::V1,
     ) {
     }
 
@@ -37,11 +36,6 @@ final class FrankenPhpHub implements HubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
-    }
-
-    public function getVersion(): MercureVersion
-    {
-        return $this->version;
     }
 
     public function publish(Update $update): string

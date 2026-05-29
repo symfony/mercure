@@ -16,7 +16,6 @@ namespace Symfony\Component\Mercure\Twig;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\HubRegistry;
-use Symfony\Component\Mercure\Internal\MatcherNormalizer;
 use Symfony\Component\Mercure\Matcher;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
@@ -41,10 +40,10 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|Matcher|array<string|Matcher|array<string, mixed>>|null                                                                                                                                                                 $matchers A matcher or list of matchers to subscribe with. Bare strings are interpreted using the hub's protocol version (`topic` on v0, `match`/exact on v1). Pass `null` to get the bare hub URL (useful for publishing in JavaScript).
-     * @param array{subscribe?: string|Matcher|array<string|Matcher|array<string, mixed>>, publish?: string|Matcher|array<string|Matcher|array<string, mixed>>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options  Options forwarded to the JWT factory
+     * @param string|Matcher|array<string|Matcher>|null                                                                                                                                            $matchers a matcher (or list of matchers) to subscribe to; pass `null` to get the bare hub URL (useful for publishing in JavaScript)
+     * @param array{subscribe?: string|Matcher|array<string|Matcher>, publish?: string|Matcher|array<string|Matcher>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options  options forwarded to the JWT factory
      *
-     * @return string The URL of the hub with the appropriate query parameters (if any)
+     * @return string the URL of the hub with the appropriate query parameters (if any)
      */
     public function mercure(string|array|Matcher|null $matchers = null, array $options = []): string
     {
@@ -55,7 +54,8 @@ final class MercureExtension extends AbstractExtension
             $matchers = \is_array($matchers) ? $matchers : [$matchers];
             // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
             $separator = '?';
-            foreach (MatcherNormalizer::forQuery($matchers, $hubInstance->getVersion()) as [$param, $value]) {
+            foreach ($matchers as $matcher) {
+                [$param, $value] = $this->matcherToQueryParam($matcher);
                 $url .= $separator.$param.'='.rawurlencode($value);
                 if ('?' === $separator) {
                     $separator = '&';
@@ -82,5 +82,19 @@ final class MercureExtension extends AbstractExtension
         $this->authorization->setCookie($request, $options['subscribe'] ?? [], $options['publish'] ?? [], $options['additionalClaims'] ?? [], $hub);
 
         return $url;
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function matcherToQueryParam(string|Matcher $matcher): array
+    {
+        if (\is_string($matcher)) {
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing a string as a topic is deprecated, use the "%s" class instead.', Matcher::class);
+
+            return ['topic', $matcher];
+        }
+
+        return ['match'.($matcher->matchType ?? ''), $matcher->match];
     }
 }

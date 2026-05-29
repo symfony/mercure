@@ -18,7 +18,6 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Matcher;
-use Symfony\Component\Mercure\MercureVersion;
 
 final class LcobucciFactoryTest extends TestCase
 {
@@ -76,7 +75,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
         $this->assertSame(
             $expectedJwt,
-            $factory->create($subscribe, $publish, $additionalClaims)
+            @$factory->create($subscribe, $publish, $additionalClaims),
         );
     }
 
@@ -84,7 +83,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     {
         $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
 
-        $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create([], ['*']));
+        $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', @$factory->create([], ['*']));
     }
 
     public function testCreateWithEncryptedRSAAlgorithm(): void
@@ -92,18 +91,18 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing');
 
         $this->assertSame(
-            'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.AKDKcK8ihBBGZyllblEj1_0RsmoYItpa_BiuvW4ylu96ACu7M-5WEbTUUYbHOUZO6_Q0tavaHXmgLj9OHBghRisTD4Ksy8X_wjmWgne5f7l2a6PoiM2AKeG0fheiLswgwXUENGxy78JVexnDg1ltnpGYkIrmwscHWOeXc6HuAaZSjMjvjRNyBf06i65n5UALA-f9vRIsi5aTZyToAG0ddXnCRJ9Kus2uoC8dO3ra-GDJqb9hncHY9MTUjhEs9D25aTLEyi2B1j0Lx-yKSqjEHxJbGiPmzGqqdlpygdgBKLY-4zrHwNYkvBJxQu6UoeECjxdLOsNfCaxVpV3KhIbwbw',
-            $factory->create([], ['*'])
+            'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.AHKMv2PQOGq5M8VhEM1Snf7QMHoTEyeuY0-L7GjRGkaygb3TyRWFO__uvIkStj1shOykO293tqGd_pijtRrbvul4ZdOQKYBjOxk7tNsQ_gQgepptneYr4eL8F9r2_KgUVrb-xcl0YzobH389OKBhuJ8HRQ-gADniBqbSuURwFyKXcEXz-GiZ_y9hTJ4tQ4bY28SlER_-LpjRCadUik4SqXLt--8VIoJ7zHvxCSOMIHFbLZ1CFaycMuXly1w7W8XKCfpshCobbi5Xt2QndAhTgpfvmnx1mn7e1ng9QDYzNHqNb6iZzxSbZ8bnttCwVv7uuBU2tEDxBXQB-TeVSD71pw',
+            @$factory->create([], ['*']),
         );
     }
 
     /**
      * @throws \JsonException
      */
-    public function testCreateV0EmitsBareStrings(): void
+    public function testStringSubscribersUseLegacyV0Format(): void
     {
-        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null, '', MercureVersion::V0);
-        $jwt = $factory->create(['https://example.com/books/{id}'], ['*']);
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+        $jwt = @$factory->create(['https://example.com/books/{id}'], ['*']);
 
         $payload = json_decode(base64_decode(explode('.', $jwt)[1], true), true, 512, \JSON_THROW_ON_ERROR);
         $this->assertSame(['https://example.com/books/{id}'], $payload['mercure']['subscribe']);
@@ -113,12 +112,12 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     /**
      * @throws \JsonException
      */
-    public function testCreateV1AcceptsMatcherObjects(): void
+    public function testMatcherObjectsUseV1Format(): void
     {
         $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
         $jwt = $factory->create(
-            [Matcher::urlPattern('https://example.com/books/:id', ['role' => 'reader'])],
-            [Matcher::regexp('^chat-room-[0-9]+$')],
+            [new Matcher('https://example.com/books/:id', 'URLPattern', ['role' => 'reader'])],
+            [new Matcher('^chat-room-[0-9]+$', 'Regexp')],
         );
 
         $payload = json_decode(base64_decode(explode('.', $jwt)[1], true), true, 512, \JSON_THROW_ON_ERROR);
@@ -127,6 +126,27 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
             $payload['mercure']['subscribe'],
         );
         $this->assertSame([['match' => '^chat-room-[0-9]+$', 'matchType' => 'Regexp']], $payload['mercure']['publish']);
+    }
+
+    public function testPassingStringTriggersDeprecation(): void
+    {
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+
+        $deprecations = [];
+        set_error_handler(static function (int $errno, string $errstr) use (&$deprecations): bool {
+            $deprecations[] = $errstr;
+
+            return true;
+        }, \E_USER_DEPRECATED);
+
+        try {
+            $factory->create(['legacy-topic'], []);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertCount(1, $deprecations);
+        $this->assertStringContainsString('Passing a string', $deprecations[0]);
     }
 
     public function testInvalidAlgorithm(): void
@@ -139,7 +159,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
     public function provideCreateCases(): iterable
     {
-        yield [
+        yield 'both null' => [
             'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',
             'subscribe' => null,
@@ -148,34 +168,34 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
             'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjpbXX0.V7YsSEFCPfzyvt38oIID7b9iE4NYjfcV07CxPUyBeLk',
         ];
 
-        yield [
+        yield 'v0 publish wildcard sha256' => [
             'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.E1oenctr6Hv3O4ANuMyl__yXD-_kv0Mj0PH41VG_Ikg',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ZTK3JhEKO1338LAgRMw6j0lkGRMoaZtU4EtGiAylAns',
         ];
 
-        yield [
+        yield 'v0 publish wildcard sha384' => [
             'secret' => 'looooooooooooooooooooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha384',
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.xv-5nq5_C8GruGA3fxVO-kaKIZZW-02YVX1tKpHPhBXPQaujkm9nlG8ekydUMBxg',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzM4NCJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ERwjuquA1VXjCx_Q05zHHIVWU40maCOLsu493IKD4osTk0l0bTs9t9S8_tgM32Ih',
         ];
 
-        yield [
+        yield 'v0 publish wildcard sha512' => [
             'secret' => 'loooooooooooooooooooooooooooooooooooooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha512',
             'subscribe' => [],
             'publish' => ['*'],
             'additionalClaims' => [],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbXX19.6YATiOLr114OiyR_pRNOYQwqu-jKO8H3uMsd8pfYNZpQeyx3sF2q4iZpiQmFKmNERJw60_01HBJGRtLgrcWJ4g',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.eMSnFpi3G0i0lvM_f55E5vUcxkT1GqyVY7qu7c_mZTjKAh4wX3mIJOGoftX7WQRlE1qTVs0OsJ0qyeyet3Yb-g',
         ];
 
-        yield [
+        yield 'additional mercure claims are preserved' => [
             'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',
             'subscribe' => [],
@@ -187,14 +207,14 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
                     'payload' => ['foo' => 'bar'],
                 ],
             ],
-            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoib3ZlcnJpZGRlbiJ9XSwic3Vic2NyaWJlIjpbeyJtYXRjaCI6Im92ZXJyaWRkZW4ifV0sInBheWxvYWQiOnsiZm9vIjoiYmFyIn19fQ.eb406PdE35QmiOpVGzSWYheoAj1sJYHCogsvRzcd1Wk',
+            'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsib3ZlcnJpZGRlbiJdLCJzdWJzY3JpYmUiOlsib3ZlcnJpZGRlbiJdLCJwYXlsb2FkIjp7ImZvbyI6ImJhciJ9fX0.owz54sSlMuVq2PqtBGFPdrYSXvMKTQc6UQdLEMOlP5s',
         ];
 
-        yield [
+        yield 'v1 mixed matchers' => [
             'secret' => 'looooooooooooongenoughtestsecret',
             'algorithm' => 'hmac.sha256',
-            'subscribe' => [['match' => 'https://example.com/books/:id', 'matchType' => 'URLPattern']],
-            'publish' => [['match' => '*']],
+            'subscribe' => [new Matcher('https://example.com/books/:id', 'URLPattern')],
+            'publish' => [new Matcher('*')],
             'additionalClaims' => [],
             'expectedJwt' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlt7Im1hdGNoIjoiKiJ9XSwic3Vic2NyaWJlIjpbeyJtYXRjaCI6Imh0dHBzOi8vZXhhbXBsZS5jb20vYm9va3MvOmlkIiwibWF0Y2hUeXBlIjoiVVJMUGF0dGVybiJ9XX19.53daJa3TFN41aXt54MUstn_Gq4T2syMJit-2WU3nNGs',
         ];

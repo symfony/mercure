@@ -14,58 +14,51 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Matcher;
-use Symfony\Component\Mercure\MatcherType;
-use Symfony\Component\Mercure\MercureVersion;
 
 final class MatcherTest extends TestCase
 {
-    public function testStaticFactories(): void
+    public function testDefaults(): void
     {
-        $this->assertSame(MatcherType::Topic, Matcher::topic('/books/{id}')->type);
-        $this->assertSame(MatcherType::Exact, Matcher::exact('/books/1')->type);
-        $this->assertSame(MatcherType::URLPattern, Matcher::urlPattern('https://example.com/books/:id')->type);
-        $this->assertSame(MatcherType::Regexp, Matcher::regexp('^chat-room-[0-9]+$')->type);
-        $this->assertSame(['x' => 1], Matcher::exact('foo', ['x' => 1])->payload);
+        $m = new Matcher('https://example.com/books/1');
+
+        $this->assertSame('https://example.com/books/1', $m->match);
+        $this->assertNull($m->matchType);
+        $this->assertNull($m->payload);
     }
 
-    public function testFromAnyPassesThroughMatcher(): void
+    public function testJsonSerializeBare(): void
     {
-        $m = Matcher::regexp('^foo$');
-        $this->assertSame($m, Matcher::fromAny($m, MercureVersion::V1));
+        $this->assertSame(
+            '{"match":"https:\/\/example.com\/books\/1"}',
+            json_encode(new Matcher('https://example.com/books/1')),
+        );
     }
 
-    public function testFromAnyStringUsesVersionDefault(): void
+    public function testJsonSerializeWithMatchType(): void
     {
-        $this->assertSame(MatcherType::Topic, Matcher::fromAny('/books/{id}', MercureVersion::V0)->type);
-        $this->assertSame(MatcherType::Exact, Matcher::fromAny('/books/1', MercureVersion::V1)->type);
+        $this->assertSame(
+            '{"match":"https:\/\/example.com\/books\/:id","matchType":"URLPattern"}',
+            json_encode(new Matcher('https://example.com/books/:id', 'URLPattern')),
+        );
     }
 
-    public function testFromAnySingleKeyArray(): void
+    public function testJsonSerializeWithPayload(): void
     {
-        $m = Matcher::fromAny(['matchURLPattern' => 'https://example.com/books/:id'], MercureVersion::V1);
-        $this->assertSame(MatcherType::URLPattern, $m->type);
-        $this->assertSame('https://example.com/books/:id', $m->value);
+        $this->assertSame(
+            '{"match":"^chat-room-[0-9]+$","matchType":"Regexp","payload":{"role":"reader"}}',
+            json_encode(new Matcher('^chat-room-[0-9]+$', 'Regexp', ['role' => 'reader'])),
+        );
     }
 
-    public function testFromAnyV1ClaimShape(): void
+    public function testCustomMatchTypeIsAccepted(): void
     {
-        $m = Matcher::fromAny(['match' => 'foo', 'matchType' => 'Regexp', 'payload' => ['a' => 1]], MercureVersion::V1);
-        $this->assertSame(MatcherType::Regexp, $m->type);
-        $this->assertSame('foo', $m->value);
-        $this->assertSame(['a' => 1], $m->payload);
-    }
+        $m = new Matcher('topic == "/books/1"', 'CEL');
 
-    public function testFromAnyInvalidMatchType(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        Matcher::fromAny(['match' => 'foo', 'matchType' => 'Bogus'], MercureVersion::V1);
-    }
-
-    public function testFromAnyInvalidInput(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        Matcher::fromAny(42, MercureVersion::V1);
+        $this->assertSame('CEL', $m->matchType);
+        $this->assertSame(
+            '{"match":"topic == \"\/books\/1\"","matchType":"CEL"}',
+            json_encode($m),
+        );
     }
 }

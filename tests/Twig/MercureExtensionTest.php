@@ -22,7 +22,6 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\Matcher;
-use Symfony\Component\Mercure\MercureVersion;
 use Symfony\Component\Mercure\MockHub;
 use Symfony\Component\Mercure\Twig\MercureExtension;
 use Symfony\Component\Mercure\Update;
@@ -32,7 +31,7 @@ use Symfony\Component\Mercure\Update;
  */
 class MercureExtensionTest extends TestCase
 {
-    public function testMercure(): void
+    public function testMercureWithMatcher(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -47,13 +46,16 @@ class MercureExtensionTest extends TestCase
 
         $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
 
-        $url = $extension->mercure(['https://foo/bar'], ['subscribe' => [['match' => 'https://foo/:id', 'matchType' => 'URLPattern']]]);
+        $url = $extension->mercure(
+            [new Matcher('https://foo/bar')],
+            ['subscribe' => [new Matcher('https://foo/:id', 'URLPattern')]],
+        );
 
         $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar', $url);
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
-    public function testMercureWithTypedMatcher(): void
+    public function testMercureWithMultipleMatcherTypes(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -65,48 +67,47 @@ class MercureExtensionTest extends TestCase
         $extension = new MercureExtension($registry);
 
         $url = $extension->mercure([
-            'https://foo/bar',
-            ['matchURLPattern' => 'https://example.com/books/:id'],
+            new Matcher('https://foo/bar'),
+            new Matcher('https://example.com/books/:id', 'URLPattern'),
+            new Matcher('^chat-room-[0-9]+$', 'Regexp'),
         ]);
 
-        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&matchURLPattern=https%3A%2F%2Fexample.com%2Fbooks%2F%3Aid', $url);
+        $this->assertSame(
+            'https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&matchURLPattern=https%3A%2F%2Fexample.com%2Fbooks%2F%3Aid&matchRegexp=%5Echat-room-%5B0-9%5D%2B%24',
+            $url,
+        );
     }
 
-    public function testMercureV0HubUsesTopicParam(): void
+    public function testMercureWithCustomMatcherType(): void
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class)
+        ));
+
+        $extension = new MercureExtension($registry);
+
+        $url = $extension->mercure([new Matcher('topic == "/books/1"', 'CEL')]);
+
+        $this->assertSame('https://example.com/.well-known/mercure?matchCEL=topic%20%3D%3D%20%22%2Fbooks%2F1%22', $url);
+    }
+
+    public function testMercureLegacyStringEmitsTopicQueryParam(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
             static function (Update $u): string { return 'dummy'; },
             $this->createMock(TokenFactoryInterface::class),
-            null,
-            MercureVersion::V0,
         ));
 
         $extension = new MercureExtension($registry);
 
-        $url = $extension->mercure(['https://example.com/books/{id}']);
+        $url = @$extension->mercure(['https://example.com/books/{id}']);
 
         $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Fexample.com%2Fbooks%2F%7Bid%7D', $url);
-    }
-
-    public function testMercureAcceptsMatcherObjects(): void
-    {
-        $registry = new HubRegistry(new MockHub(
-            'https://example.com/.well-known/mercure',
-            new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
-            $this->createMock(TokenFactoryInterface::class),
-        ));
-
-        $extension = new MercureExtension($registry);
-
-        $url = $extension->mercure([
-            Matcher::urlPattern('https://example.com/books/:id'),
-            Matcher::regexp('^chat-room-[0-9]+$'),
-        ]);
-
-        $this->assertSame('https://example.com/.well-known/mercure?matchURLPattern=https%3A%2F%2Fexample.com%2Fbooks%2F%3Aid&matchRegexp=%5Echat-room-%5B0-9%5D%2B%24', $url);
     }
 
     public function testMercureLastEventId(): void
@@ -126,7 +127,7 @@ class MercureExtensionTest extends TestCase
 
         $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
 
-        $url = $extension->mercure(['https://foo/bar'], [
+        $url = $extension->mercure([new Matcher('https://foo/bar')], [
             'lastEventId' => 'urn:uuid:13697bc5-e3c6-48cf-99c8-9d64c26f1a2f',
         ]);
 

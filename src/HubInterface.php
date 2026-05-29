@@ -36,11 +36,6 @@ interface HubInterface
     public function getFactory(): ?TokenFactoryInterface;
 
     /**
-     * Version of the Mercure protocol used by this Hub.
-     */
-    public function getVersion(): MercureVersion;
-
-    /**
      * Publish an update to this Hub.
      */
     public function publish(Update $update): string;

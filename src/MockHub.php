@@ -32,7 +32,6 @@ final class MockHub implements HubInterface
         callable $publisher,
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         private readonly ?string $publicUrl = null,
-        private readonly MercureVersion $version = MercureVersion::V1,
     ) {
         $this->publisher = $publisher;
     }
@@ -55,11 +54,6 @@ final class MockHub implements HubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
-    }
-
-    public function getVersion(): MercureVersion
-    {
-        return $this->version;
     }
 
     public function publish(Update $update): string

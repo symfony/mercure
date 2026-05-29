@@ -42,10 +42,10 @@ final class Authorization
     /**
      * Sets mercureAuthorization cookie for the given hub.
      *
-     * @param string|Matcher|array<string|Matcher|array{match: string, matchType?: string, payload?: mixed}>|null $subscribe        matchers that the authorization cookie will allow subscribing to
-     * @param string|Matcher|array<string|Matcher|array{match: string, matchType?: string, payload?: mixed}>|null $publish          matchers that the authorization cookie will allow publishing to
-     * @param array<string, mixed>                                                                                $additionalClaims additional claims for the JWT
-     * @param string|null                                                                                         $hub              the hub to generate the cookie for
+     * @param string|Matcher|array<string|Matcher>|null $subscribe        matchers that the authorization cookie will allow subscribing to
+     * @param string|Matcher|array<string|Matcher>|null $publish          matchers that the authorization cookie will allow publishing to
+     * @param array<string, mixed>                      $additionalClaims additional claims for the JWT
+     * @param string|null                               $hub              the hub to generate the cookie for
      */
     public function setCookie(Request $request, string|array|Matcher|null $subscribe = [], string|array|Matcher|null $publish = [], array $additionalClaims = [], ?string $hub = null): void
     {
@@ -65,10 +65,10 @@ final class Authorization
     /**
      * Creates mercureAuthorization cookie for the given hub.
      *
-     * @param string|Matcher|array<string|Matcher|array{match: string, matchType?: string, payload?: mixed}>|null $subscribe        matchers that the authorization cookie will allow subscribing to
-     * @param string|Matcher|array<string|Matcher|array{match: string, matchType?: string, payload?: mixed}>|null $publish          matchers that the authorization cookie will allow publishing to
-     * @param array<string, mixed>                                                                                $additionalClaims additional claims for the JWT
-     * @param string|null                                                                                         $hub              the hub to generate the cookie for
+     * @param string|Matcher|array<string|Matcher>|null $subscribe        matchers that the authorization cookie will allow subscribing to
+     * @param string|Matcher|array<string|Matcher>|null $publish          matchers that the authorization cookie will allow publishing to
+     * @param array<string, mixed>                      $additionalClaims additional claims for the JWT
+     * @param string|null                               $hub              the hub to generate the cookie for
      */
     public function createCookie(Request $request, string|array|Matcher|null $subscribe = [], string|array|Matcher|null $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
     {
@@ -94,6 +94,8 @@ final class Authorization
         if (null !== $publish) {
             $publish = (array) $publish;
         }
+
+        self::triggerStringDeprecations([...$subscribe ?? [], ...$publish ?? []]);
 
         $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
@@ -139,6 +141,20 @@ final class Authorization
             false,
             $this->cookieSameSite
         );
+    }
+
+    /**
+     * @param array<int, string|Matcher|mixed> $matchers
+     */
+    private static function triggerStringDeprecations(array $matchers): void
+    {
+        foreach ($matchers as $matcher) {
+            if (\is_string($matcher)) {
+                trigger_deprecation('symfony/mercure', '0.8', 'Passing a string as a topic is deprecated, use the "%s" class instead.', Matcher::class);
+
+                return;
+            }
+        }
     }
 
     private function getCookieDomain(Request $request, array $urlComponents): ?string

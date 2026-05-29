@@ -25,9 +25,9 @@ interface TokenFactoryInterface
     /**
      * Create a token that allows publishing to $publish and subscribing to $subscribe.
      *
-     * @param array<string|Matcher|array{match: string, matchType?: string, payload?: mixed}>|null $subscribe        matchers that the token will allow subscribing to
-     * @param array<string|Matcher|array{match: string, matchType?: string, payload?: mixed}>|null $publish          matchers that the token will allow publishing to
-     * @param mixed[]                                                                              $additionalClaims additional claims for the JWT
+     * @param array<string|Matcher>|null $subscribe        matchers that the token will allow subscribing to
+     * @param array<string|Matcher>|null $publish          matchers that the token will allow publishing to
+     * @param mixed[]                    $additionalClaims additional claims for the JWT
      */
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string;
 }
