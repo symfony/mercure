@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure;
 
 /**
-* @author Léa BAR <contact@0xlea.Fr>
+ * @author Léa BAR <contact@0xlea.Fr>
  */
 final class Matcher implements \JsonSerializable
 {

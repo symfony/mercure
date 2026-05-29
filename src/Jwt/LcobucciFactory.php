@@ -131,6 +131,7 @@ final class LcobucciFactory implements TokenFactoryInterface
         foreach ($matchers as $matcher) {
             if (\is_string($matcher)) {
                 trigger_deprecation('symfony/mercure', '0.8', 'Passing a string as a topic is deprecated, use the "%s" class instead.', Matcher::class);
+
                 return;
             }
         }
