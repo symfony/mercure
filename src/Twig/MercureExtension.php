@@ -16,6 +16,7 @@ namespace Symfony\Component\Mercure\Twig;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\TopicMatcher;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -39,20 +40,27 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|null                                                                                                                       $topics  A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     * @param string|TopicMatcher|array<string|TopicMatcher>|null                                                                                        $topics  A topic or an array of topics to subscribe for. Plain strings use the legacy "topic" parameter, while TopicMatcher instances use the Mercure V1 "match"/"matchURLPattern" parameters. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
      * @param array{subscribe?: string[]|string, publish?: string[]|string, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
      *
      * @return string The URL of the hub with the appropriate "topic" query parameters (if any)
      */
-    public function mercure(string|array|null $topics = null, array $options = []): string
+    public function mercure(string|TopicMatcher|array|null $topics = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
         $url = $this->hubRegistry->getHub($hub)->getPublicUrl();
         if (null !== $topics) {
             // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
             $separator = '?';
-            foreach ((array) $topics as $topic) {
-                $url .= $separator.'topic='.rawurlencode($topic);
+            foreach (\is_array($topics) ? $topics : [$topics] as $topic) {
+                if ($topic instanceof TopicMatcher) {
+                    $parameter = 'match'.(TopicMatcher::EXACT === $topic->matchType ? '' : $topic->matchType);
+                    $topic = $topic->match;
+                } else {
+                    $parameter = 'topic';
+                }
+
+                $url .= $separator.$parameter.'='.rawurlencode($topic);
                 if ('?' === $separator) {
                     $separator = '&';
                 }

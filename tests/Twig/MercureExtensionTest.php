@@ -22,6 +22,7 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
+use Symfony\Component\Mercure\TopicMatcher;
 use Symfony\Component\Mercure\Twig\MercureExtension;
 use Symfony\Component\Mercure\Update;
 
@@ -30,12 +31,12 @@ use Symfony\Component\Mercure\Update;
  */
 class MercureExtensionTest extends TestCase
 {
-    public function testMercure()
+    public function testMercure(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string { return 'dummy'; },
+            static function (Update $u): string { return 'dummy'; },
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -51,12 +52,31 @@ class MercureExtensionTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
-    public function testMercureLastEventId()
+    public function testMercureTopicMatchers(): void
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            function (Update $u): string {
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class)
+        ));
+
+        $extension = new MercureExtension($registry);
+
+        $url = $extension->mercure([
+            new TopicMatcher('https://example.com/books/1'),
+            new TopicMatcher('https://example.com/users/{id}', TopicMatcher::URL_PATTERN),
+        ]);
+
+        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Fexample.com%2Fbooks%2F1&matchURLPattern=https%3A%2F%2Fexample.com%2Fusers%2F%7Bid%7D', $url);
+    }
+
+    public function testMercureLastEventId(): void
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string {
                 return 'dummy';
             },
             $this->createMock(TokenFactoryInterface::class)

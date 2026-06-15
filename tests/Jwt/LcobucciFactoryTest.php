@@ -17,6 +17,7 @@ use Lcobucci\JWT\Signer\Key;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
+use Symfony\Component\Mercure\TopicMatcher;
 
 final class LcobucciFactoryTest extends TestCase
 {
@@ -67,7 +68,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     /**
      * @dataProvider provideCreateCases
      */
-    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt)
+    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt): void
     {
         \assert('' !== $secret);
         $factory = new LcobucciFactory($secret, $algorithm, null);
@@ -78,14 +79,14 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testCreateWithEcdsaAlgorithm()
+    public function testCreateWithEcdsaAlgorithm(): void
     {
         $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
 
         $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create([], ['*']));
     }
 
-    public function testCreateWithEncryptedRSAAlgorithm()
+    public function testCreateWithEncryptedRSAAlgorithm(): void
     {
         $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing');
 
@@ -95,7 +96,44 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testInvalidAlgorithm()
+    public function testCreateWithTopicMatchers(): void
+    {
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+
+        $jwt = $factory->create(
+            [new TopicMatcher('https://example.com/books/{id}', TopicMatcher::URL_PATTERN), 'https://example.com/foo'],
+            [new TopicMatcher('*')]
+        );
+
+        [$header, $payload] = array_map(
+            /**
+             * @throws \JsonException
+             */ static fn (string $part): array => json_decode(base64_decode(strtr($part, '-_', '+/'), true), true, 512, \JSON_THROW_ON_ERROR),
+            \array_slice(explode('.', $jwt), 0, 2)
+        );
+
+        $this->assertSame('at+jwt', $header['typ']);
+        $this->assertArrayNotHasKey('mercure', $payload);
+        $this->assertSame([
+            [
+                'type' => 'mercure',
+                'actions' => ['publish'],
+                'topics' => [
+                    ['match' => '*', 'matchType' => 'Exact'],
+                ],
+            ],
+            [
+                'type' => 'mercure',
+                'actions' => ['subscribe'],
+                'topics' => [
+                    ['match' => 'https://example.com/books/{id}', 'matchType' => 'URLPattern'],
+                    ['match' => 'https://example.com/foo', 'matchType' => 'Exact'],
+                ],
+            ],
+        ], $payload['authorization_details']);
+    }
+
+    public function testInvalidAlgorithm(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported algorithm "md5", expected one of "hmac.sha256", "hmac.sha384", "hmac.sha512", "ecdsa.sha256", "ecdsa.sha384", "ecdsa.sha512", "rsa.sha256", "rsa.sha384", "rsa.sha512".');

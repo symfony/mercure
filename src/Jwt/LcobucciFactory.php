@@ -18,6 +18,7 @@ use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
+use Symfony\Component\Mercure\TopicMatcher;
 
 final class LcobucciFactory implements TokenFactoryInterface
 {
@@ -38,13 +39,17 @@ final class LcobucciFactory implements TokenFactoryInterface
 
     private Configuration $configurations;
     private ?int $jwtLifetime;
+    private ?string $audience;
 
     /**
      * @param non-empty-string $secret
      * @param int|null         $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
+     * @param string|null      $audience    The hub's resource identifier (usually its public URL). When set, it is used as the "aud" claim which the hub requires.
      */
-    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '')
+    public function __construct(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = '', ?string $audience = null)
     {
+        $this->audience = $audience;
+
         if (!class_exists(Key\InMemory::class)) {
             throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');
         }
@@ -64,6 +69,9 @@ final class LcobucciFactory implements TokenFactoryInterface
         $this->jwtLifetime = 0 === $jwtLifetime ? ((int) \ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
     {
         $builder = $this->configurations->builder();
@@ -72,15 +80,31 @@ final class LcobucciFactory implements TokenFactoryInterface
             $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
         }
 
-        $tokens = [];
-        if (null !== $publish) {
-            $tokens['publish'] = (array) $publish;
-        }
-        if (null !== $subscribe) {
-            $tokens['subscribe'] = (array) $subscribe;
-        }
+        if ($this->usesMatchers($subscribe) || $this->usesMatchers($publish)) {
+            $builder = $builder->withHeader('typ', 'at+jwt');
+            $additionalClaims['authorization_details'] = array_merge(
+                $this->createAuthorizationDetails($publish, $subscribe),
+                $additionalClaims['authorization_details'] ?? [],
+            );
 
-        $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
+            if (null !== $this->audience && !\array_key_exists('aud', $additionalClaims)) {
+                $additionalClaims['aud'] = $this->audience;
+            }
+
+            if (!\array_key_exists('exp', $additionalClaims)) {
+                $additionalClaims['exp'] = new \DateTimeImmutable('+'.($this->jwtLifetime ?? 3600).' seconds');
+            }
+        } else {
+            $tokens = [];
+            if (null !== $publish) {
+                $tokens['publish'] = (array) $publish;
+            }
+            if (null !== $subscribe) {
+                $tokens['subscribe'] = (array) $subscribe;
+            }
+
+            $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
+        }
 
         foreach ($additionalClaims as $name => $value) {
             switch ($name) {
@@ -115,5 +139,47 @@ final class LcobucciFactory implements TokenFactoryInterface
         return $builder
             ->getToken($this->configurations->signer(), $this->configurations->signingKey())
             ->toString();
+    }
+
+    /**
+     * @param string[]|TopicMatcher[]|null $topics
+     */
+    private function usesMatchers(?array $topics): bool
+    {
+        foreach ($topics ?? [] as $topic) {
+            if ($topic instanceof TopicMatcher) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @param string[]|TopicMatcher[]|null $publish
+     * @param string[]|TopicMatcher[]|null $subscribe
+     *
+     * @return array<array{type: string, actions: string[], topics: array<array{match: string, matchType: string}>}>
+     */
+    private function createAuthorizationDetails(?array $publish, ?array $subscribe): array
+    {
+        $details = [];
+        foreach (['publish' => $publish, 'subscribe' => $subscribe] as $action => $topics) {
+            if (!$topics) {
+                continue;
+            }
+
+            $details[] = [
+                'type' => 'mercure',
+                'actions' => [$action],
+                'topics' => array_map(static function (string|TopicMatcher $topic): array {
+                    $matcher = $topic instanceof TopicMatcher ? $topic : new TopicMatcher($topic);
+
+                    return ['match' => $matcher->match, 'matchType' => $matcher->matchType];
+                }, $topics),
+            ];
+        }
+
+        return $details;
     }
 }
