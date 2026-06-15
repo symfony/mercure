@@ -17,6 +17,7 @@ use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 
 /**
  * A topic matcher for Mercure V1.
+ *
  * @author Léa BAR <contact@0xlea.fr>
  */
 final class TopicMatcher
