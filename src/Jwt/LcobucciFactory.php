@@ -14,15 +14,13 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Jwt;
 
 use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\ClaimsFormatter;
 use Lcobucci\JWT\Configuration;
-use Lcobucci\JWT\Encoding\ChainedFormatter;
 use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Token\RegisteredClaims;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
-use Symfony\Component\Mercure\Internal\AuthorizationDetailsClaims;
-use Symfony\Component\Mercure\Internal\JwtLifetime;
-use Symfony\Component\Mercure\Internal\MatcherInput;
+use Symfony\Component\Mercure\MatcherInput;
 use Symfony\Component\Mercure\ProtocolVersion;
 
 /**
@@ -77,7 +75,7 @@ final class LcobucciFactory implements TokenFactoryInterface
             Key\InMemory::plainText($secret, $passphrase)
         );
 
-        $this->jwtLifetime = JwtLifetime::resolve($jwtLifetime);
+        $this->jwtLifetime = JwtClaims::resolveLifetime($jwtLifetime);
     }
 
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
@@ -108,16 +106,36 @@ final class LcobucciFactory implements TokenFactoryInterface
 
     private function createV1(?array $subscribe, ?array $publish, array $additionalClaims): string
     {
-        $additionalClaims = AuthorizationDetailsClaims::build($subscribe, $publish, $additionalClaims, $this->jwtLifetime);
+        $additionalClaims = JwtClaims::buildAuthorizationDetails($subscribe, $publish, $additionalClaims, $this->jwtLifetime);
 
-        // RFC 9068 "iat"/"exp" are NumericDate values; "lcobucci/jwt" >=4.2's default claim
-        // formatter emits them as floats with microsecond precision instead, which some
-        // resource servers reject. Force plain Unix timestamps, matching WebTokenFactory.
-        $builder = class_exists(ChainedFormatter::class)
-            ? $this->configurations->builder(ChainedFormatter::withUnixTimestampDates())
-            : $this->configurations->builder();
+        // RFC 9068 "iat"/"exp" are NumericDate values; "lcobucci/jwt"'s default claim formatter
+        // emits them as floats with microsecond precision instead, which some resource servers
+        // reject. Force plain Unix timestamps, matching WebTokenFactory, with our own formatter
+        // rather than Encoding\ChainedFormatter::withUnixTimestampDates(): that method isn't
+        // available on every "lcobucci/jwt" version this factory supports.
+        $builder = $this->configurations->builder($this->integerTimestampFormatter());
 
         return $this->buildToken($builder, $additionalClaims, ['typ' => 'at+jwt']);
+    }
+
+    private function integerTimestampFormatter(): ClaimsFormatter
+    {
+        return new class implements ClaimsFormatter {
+            public function formatClaims(array $claims): array
+            {
+                foreach ([RegisteredClaims::ISSUED_AT, RegisteredClaims::EXPIRATION_TIME, RegisteredClaims::NOT_BEFORE] as $name) {
+                    if (isset($claims[$name]) && $claims[$name] instanceof \DateTimeInterface) {
+                        $claims[$name] = $claims[$name]->getTimestamp();
+                    }
+                }
+
+                if (isset($claims[RegisteredClaims::AUDIENCE]) && 1 === \count($claims[RegisteredClaims::AUDIENCE])) {
+                    $claims[RegisteredClaims::AUDIENCE] = current($claims[RegisteredClaims::AUDIENCE]);
+                }
+
+                return $claims;
+            }
+        };
     }
 
     /**

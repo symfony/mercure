@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Symfony\Component\Mercure\Tests\Internal;
+namespace Symfony\Component\Mercure\Tests;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
-use Symfony\Component\Mercure\Internal\MatcherInput;
+use Symfony\Component\Mercure\MatcherInput;
 
 final class MatcherInputTest extends TestCase
 {

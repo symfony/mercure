@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Symfony\Component\Mercure\Internal;
+namespace Symfony\Component\Mercure;
 
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 

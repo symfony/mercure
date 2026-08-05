@@ -11,22 +11,28 @@
 
 declare(strict_types=1);
 
-namespace Symfony\Component\Mercure\Internal;
+namespace Symfony\Component\Mercure\Jwt;
 
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
+use Symfony\Component\Mercure\MatcherInput;
 
 /**
- * Builds the Mercure protocol 1.0 claim set (an RFC 9068 access token carrying an
- * RFC 9396 "authorization_details" claim), shared by every TokenFactoryInterface
- * implementation that supports the protocol 1.0 wire format.
+ * Shared claim-building logic used by every TokenFactoryInterface implementation:
+ * "0 means auto" lifetime resolution, and the Mercure protocol 1.0 claim set (an
+ * RFC 9068 access token carrying an RFC 9396 "authorization_details" claim).
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
  *
  * @internal
  */
-final class AuthorizationDetailsClaims
+final class JwtClaims
 {
-    private const TYPE = 'https://mercure.rocks/authorization-detail';
+    private const AUTHORIZATION_DETAIL_TYPE = 'https://mercure.rocks/authorization-detail';
+
+    public static function resolveLifetime(?int $jwtLifetime): ?int
+    {
+        return 0 === $jwtLifetime ? ((int) \ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
+    }
 
     /**
      * @param array<int, string>|array<string, string[]>|null $subscribe
@@ -35,7 +41,7 @@ final class AuthorizationDetailsClaims
      *
      * @return mixed[]
      */
-    public static function build(?array $subscribe, ?array $publish, array $additionalClaims, ?int $jwtLifetime): array
+    public static function buildAuthorizationDetails(?array $subscribe, ?array $publish, array $additionalClaims, ?int $jwtLifetime): array
     {
         $payload = $additionalClaims['mercure']['payload'] ?? null;
         unset($additionalClaims['mercure']);
@@ -46,7 +52,7 @@ final class AuthorizationDetailsClaims
             $topics = self::toTopicObjects(MatcherInput::normalize($subscribe));
             if ([] !== $topics) {
                 $entry = [
-                    'type' => self::TYPE,
+                    'type' => self::AUTHORIZATION_DETAIL_TYPE,
                     'actions' => ['subscribe'],
                     'topics' => $topics,
                 ];
@@ -63,7 +69,7 @@ final class AuthorizationDetailsClaims
             $topics = self::toTopicObjects(MatcherInput::normalize($publish));
             if ([] !== $topics) {
                 $entries[] = [
-                    'type' => self::TYPE,
+                    'type' => self::AUTHORIZATION_DETAIL_TYPE,
                     'actions' => ['publish'],
                     'topics' => $topics,
                 ];

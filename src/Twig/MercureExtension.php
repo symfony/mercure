@@ -16,7 +16,7 @@ namespace Symfony\Component\Mercure\Twig;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\HubRegistry;
-use Symfony\Component\Mercure\Internal\MatcherInput;
+use Symfony\Component\Mercure\MatcherInput;
 use Symfony\Component\Mercure\ProtocolVersion;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
