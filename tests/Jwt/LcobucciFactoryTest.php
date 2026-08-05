@@ -17,9 +17,18 @@ use Lcobucci\JWT\Signer\Key;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
+use Symfony\Component\Mercure\ProtocolVersion;
 
 final class LcobucciFactoryTest extends TestCase
 {
+    private const SECRET = 'looooooooooooongenoughtestsecret';
+    private const REQUIRED_CLAIMS = [
+        'iss' => 'https://example.com',
+        'aud' => 'https://hub.example.com/.well-known/mercure',
+        'sub' => 'urn:uuid:1',
+        'client_id' => 'https://example.com',
+    ];
+
     private const PRIVATE_ECDSA_KEY = '-----BEGIN EC PRIVATE KEY-----
 MHcCAQEEIBGpMoZJ64MMSzuo5JbmXpf9V4qSWdLIl/8RmJLcfn/qoAoGCCqGSM49
 AwEHoUQDQgAE7it/EKmcv9bfpcV1fBreLMRXxWpnd0wxa2iFruiI2tsEdGFTLTsy
@@ -101,6 +110,126 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->expectExceptionMessage('Unsupported algorithm "md5", expected one of "hmac.sha256", "hmac.sha384", "hmac.sha512", "ecdsa.sha256", "ecdsa.sha384", "ecdsa.sha512", "rsa.sha256", "rsa.sha384", "rsa.sha512".');
 
         new LcobucciFactory('!ChangeMe!', 'md5');
+    }
+
+    public function testPureExactMatcherArrayIsEquivalentToFlatList()
+    {
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+
+        $this->assertSame(
+            $factory->create([], ['exact' => ['*']]),
+            $factory->create([], ['*'])
+        );
+    }
+
+    public function testNonExactMatcherTypeThrows()
+    {
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Topic matcher type(s) "urlpattern" require the Mercure protocol 1.0');
+
+        $factory->create([], ['urlpattern' => ['https://example.com/books/:id']]);
+    }
+
+    public function testV1RequiresRegisteredClaims()
+    {
+        $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "iss" additional claim is required');
+
+        $factory->create(['a'], []);
+    }
+
+    public function testV1RejectsNullOrEmptyRegisteredClaims()
+    {
+        $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The "aud" additional claim is required');
+
+        $factory->create(['a'], [], ['iss' => 'https://example.com', 'aud' => '', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com']);
+    }
+
+    public function testV1ClaimShape()
+    {
+        $factory = new LcobucciFactory(self::SECRET, 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::V1);
+
+        [$header, $payload] = $this->decode($factory->create(
+            ['exact' => ['https://example.com/books/1'], 'urlpattern' => ['https://example.com/reviews/:id']],
+            ['*'],
+            self::REQUIRED_CLAIMS
+        ));
+
+        $this->assertSame('HS256', $header['alg']);
+        $this->assertSame('at+jwt', $header['typ']);
+        $this->assertArrayNotHasKey('mercure', $payload);
+        $this->assertCount(2, $payload['authorization_details']);
+
+        $subscribeDetail = $payload['authorization_details'][0];
+        $this->assertSame('https://mercure.rocks/authorization-detail', $subscribeDetail['type']);
+        $this->assertSame(['subscribe'], $subscribeDetail['actions']);
+        $this->assertSame(
+            [
+                ['match' => 'https://example.com/books/1'],
+                ['match' => 'https://example.com/reviews/:id', 'match_type' => 'urlpattern'],
+            ],
+            $subscribeDetail['topics']
+        );
+
+        $publishDetail = $payload['authorization_details'][1];
+        $this->assertSame(['publish'], $publishDetail['actions']);
+        $this->assertSame([['match' => '*']], $publishDetail['topics']);
+
+        $this->assertIsInt($payload['exp']);
+        $this->assertIsInt($payload['iat']);
+        $this->assertIsString($payload['jti']);
+    }
+
+    public function testV1PayloadIsAttachedToSubscribeDetail()
+    {
+        $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
+
+        [, $payload] = $this->decode($factory->create(
+            ['a'],
+            null,
+            self::REQUIRED_CLAIMS + ['mercure' => ['payload' => ['foo' => 'bar']]]
+        ));
+
+        $this->assertSame(['foo' => 'bar'], $payload['authorization_details'][0]['payload']);
+    }
+
+    public function testV1PayloadWithoutSubscribeTopicsThrows()
+    {
+        $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('requires at least one subscribe topic');
+
+        $factory->create(
+            [],
+            null,
+            self::REQUIRED_CLAIMS + ['mercure' => ['payload' => ['foo' => 'bar']]]
+        );
+    }
+
+    /**
+     * @return array{0: array<string, mixed>, 1: array<string, mixed>}
+     */
+    private function decode(string $jwt): array
+    {
+        [$header, $payload] = explode('.', $jwt);
+
+        return [
+            json_decode($this->base64UrlDecode($header), true, flags: \JSON_THROW_ON_ERROR),
+            json_decode($this->base64UrlDecode($payload), true, flags: \JSON_THROW_ON_ERROR),
+        ];
+    }
+
+    private function base64UrlDecode(string $data): string
+    {
+        return base64_decode(strtr($data, '-_', '+/').str_repeat('=', (4 - \strlen($data) % 4) % 4));
     }
 
     public function provideCreateCases(): iterable

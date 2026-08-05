@@ -23,6 +23,8 @@ final class MockHub implements HubInterface
      */
     private $publisher;
 
+    private readonly string $cookieName;
+
     /**
      * @param (callable(Update): string) $publisher
      */
@@ -32,8 +34,11 @@ final class MockHub implements HubInterface
         callable $publisher,
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         private readonly ?string $publicUrl = null,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
+        ?string $cookieName = null,
     ) {
         $this->publisher = $publisher;
+        $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
     }
 
     public function getUrl(): string
@@ -54,6 +59,16 @@ final class MockHub implements HubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
+    }
+
+    public function getProtocolVersion(): ProtocolVersion
+    {
+        return $this->protocolVersion;
+    }
+
+    public function getCookieName(): string
+    {
+        return $this->cookieName;
     }
 
     public function publish(Update $update): string

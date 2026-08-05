@@ -22,10 +22,15 @@ use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
  */
 final class FrankenPhpHub implements HubInterface
 {
+    private readonly string $cookieName;
+
     public function __construct(
         private readonly string $publicUrl,
         private readonly ?TokenFactoryInterface $jwtFactory = null,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
+        ?string $cookieName = null,
     ) {
+        $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
     }
 
     public function getPublicUrl(): string
@@ -36,6 +41,16 @@ final class FrankenPhpHub implements HubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
+    }
+
+    public function getProtocolVersion(): ProtocolVersion
+    {
+        return $this->protocolVersion;
+    }
+
+    public function getCookieName(): string
+    {
+        return $this->cookieName;
     }
 
     public function publish(Update $update): string

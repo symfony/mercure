@@ -20,15 +20,19 @@ namespace Symfony\Component\Mercure\Jwt;
  */
 final class FactoryTokenProvider implements TokenProviderInterface
 {
+    /**
+     * @param mixed[] $additionalClaims an array of additional claims for the JWT, e.g. the "iss"/"aud"/"sub"/"client_id" claims required by RFC 9068 access tokens under the Mercure protocol 1.0
+     */
     public function __construct(
         private readonly TokenFactoryInterface $factory,
         private readonly array $subscribe = [],
         private readonly array $publish = [],
+        private readonly array $additionalClaims = [],
     ) {
     }
 
     public function getJwt(): string
     {
-        return $this->factory->create($this->subscribe, $this->publish);
+        return $this->factory->create($this->subscribe, $this->publish, $this->additionalClaims);
     }
 }

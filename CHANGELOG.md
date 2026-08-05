@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.8.0
+-----
+
+* Add support for the Mercure protocol 1.0, alongside the existing 0.x protocol (`Symfony\Component\Mercure\ProtocolVersion`, opt-in per hub, `0.x` stays the default until Mercure hub 1.0 is tagged stable)
+* Add `HubInterface::getProtocolVersion()` and `HubInterface::getCookieName()`
+* Add `Hub`/`FrankenPhpHub`/`MockHub` constructor parameters `$protocolVersion` and `$cookieName`
+* Change the default subscriber authorization cookie name to `__Secure-mercure_access_token` when a hub is configured for protocol 1.0 (`mercureAuthorization` stays the default for 0.x); the `__Secure-`/`__Host-` prefix contract itself is enforced by `Symfony\Component\HttpFoundation\Cookie` (symfony/symfony#65162), not by this package
+* Add Mercure protocol 1.0 support (the `authorization_details` claim, an RFC 9068 access token, `at+jwt`) to `Symfony\Component\Mercure\Jwt\LcobucciFactory`, selected via its new `$protocolVersion` constructor parameter
+* Allow `TokenFactoryInterface::create()`'s `$subscribe`/`$publish` parameters, and the Twig `mercure()` function's `$topics` parameter and `subscribe`/`publish` options, to be an associative array mapping a topic matcher type (`exact`, `urlpattern`, or a registered extension type) to a list of patterns, in addition to the existing flat topic list
+* Add `FactoryTokenProvider`'s `$additionalClaims` constructor parameter, forwarded to the wrapped factory
+
 0.7.2
 -----
 

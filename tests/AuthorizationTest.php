@@ -24,6 +24,7 @@ use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
+use Symfony\Component\Mercure\ProtocolVersion;
 use Symfony\Component\Mercure\Update;
 
 /**
@@ -208,4 +209,21 @@ class AuthorizationTest extends TestCase
         $cookie = $request->attributes->get('_mercure_authorization_cookies')[''];
         $this->assertNotNull($cookie->getValue());
     }
+
+    public function testCookieNameComesFromTheHub()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class),
+            protocolVersion: ProtocolVersion::V1,
+        ));
+
+        $authorization = new Authorization($registry);
+        $cookie = $authorization->createCookie(Request::create('https://example.com'));
+
+        $this->assertSame('__Secure-mercure_access_token', $cookie->getName());
+    }
+
 }

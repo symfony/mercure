@@ -21,6 +21,7 @@ use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\Hub;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
+use Symfony\Component\Mercure\ProtocolVersion;
 use Symfony\Component\Mercure\Update;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
@@ -103,5 +104,28 @@ class HubTest extends TestCase
         $hub = new Hub(self::URL, $provider, null, null);
 
         $hub->publish(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!'));
+    }
+
+    public function testDefaultsToLegacyProtocolVersionAndCookieName()
+    {
+        $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT));
+
+        $this->assertSame(ProtocolVersion::Legacy, $hub->getProtocolVersion());
+        $this->assertSame('mercureAuthorization', $hub->getCookieName());
+    }
+
+    public function testExplicitProtocolVersionAndCustomCookieName()
+    {
+        $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT), protocolVersion: ProtocolVersion::V1, cookieName: 'custom_cookie');
+
+        $this->assertSame(ProtocolVersion::V1, $hub->getProtocolVersion());
+        $this->assertSame('custom_cookie', $hub->getCookieName());
+    }
+
+    public function testDefaultCookieNameForV1Protocol()
+    {
+        $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT), protocolVersion: ProtocolVersion::V1);
+
+        $this->assertSame('__Secure-mercure_access_token', $hub->getCookieName());
     }
 }

@@ -23,9 +23,18 @@ interface TokenFactoryInterface
     /**
      * Create a token that allows publishing to $publish and subscribing to $subscribe.
      *
-     * @param string[]|null $subscribe        a list of topics that the token will allow subscribing to
-     * @param string[]|null $publish          a list of topics that the token will allow publishing to
-     * @param mixed[]       $additionalClaims an array of additional claims for the JWT
+     * @param array<int, string>|array<string, string[]>|null $subscribe        a flat list of topics (matched as
+     *                                                                          "exact"), or an associative array
+     *                                                                          mapping a matcher type name (e.g.
+     *                                                                          "exact", "urlpattern", or a
+     *                                                                          registered extension type) to a list
+     *                                                                          of patterns of that type. Matcher
+     *                                                                          types other than "exact" are only
+     *                                                                          meaningful for factories that
+     *                                                                          support the Mercure protocol 1.0
+     *                                                                          (see {@see ProtocolVersion::V1}).
+     * @param array<int, string>|array<string, string[]>|null $publish          same shape as $subscribe
+     * @param mixed[]                                         $additionalClaims an array of additional claims for the JWT
      */
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string;
 }

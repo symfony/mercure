@@ -19,12 +19,10 @@ use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 
 /**
- * Manages the "mercureAuthorization" cookies.
+ * Manages the subscriber authorization cookie.
  */
 final class Authorization
 {
-    private const MERCURE_AUTHORIZATION_COOKIE_NAME = 'mercureAuthorization';
-
     private readonly int $cookieLifetime;
 
     /**
@@ -40,7 +38,7 @@ final class Authorization
     }
 
     /**
-     * Sets mercureAuthorization cookie for the given hub.
+     * Sets the subscriber authorization cookie for the given hub.
      *
      * @param string[]|string|null $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
      * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
@@ -53,7 +51,7 @@ final class Authorization
     }
 
     /**
-     * Clears the mercureAuthorization cookie for the given hub.
+     * Clears the subscriber authorization cookie for the given hub.
      *
      * @param string|null $hub the hub to clear the cookie for
      */
@@ -63,7 +61,7 @@ final class Authorization
     }
 
     /**
-     * Creates mercureAuthorization cookie for the given hub.
+     * Creates the subscriber authorization cookie for the given hub.
      *
      * @param string[]|string|null $subscribe        a list of topics that the authorization cookie will allow subscribing to
      * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
@@ -104,13 +102,17 @@ final class Authorization
             $cookieLifetime = new \DateTimeImmutable("+{$cookieLifetime} seconds");
         }
 
+        $path = $urlComponents['path'] ?? '/';
+        $domain = $this->getCookieDomain($request, $urlComponents);
+        $secure = 'http' !== strtolower($urlComponents['scheme'] ?? 'https');
+
         return Cookie::create(
-            self::MERCURE_AUTHORIZATION_COOKIE_NAME,
+            $hubInstance->getCookieName(),
             $token,
             $cookieLifetime,
-            $urlComponents['path'] ?? '/',
-            $this->getCookieDomain($request, $urlComponents),
-            'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
+            $path,
+            $domain,
+            $secure,
             true,
             false,
             $this->cookieSameSite
@@ -118,7 +120,7 @@ final class Authorization
     }
 
     /**
-     * Clears the mercureAuthorization cookie for the given hub.
+     * Clears the subscriber authorization cookie for the given hub.
      *
      * @param string|null $hub the hub to clear the cookie for
      */
@@ -128,13 +130,17 @@ final class Authorization
         /** @var array $urlComponents */
         $urlComponents = parse_url($hubInstance->getPublicUrl());
 
+        $path = $urlComponents['path'] ?? '/';
+        $domain = $this->getCookieDomain($request, $urlComponents);
+        $secure = 'http' !== strtolower($urlComponents['scheme'] ?? 'https');
+
         return Cookie::create(
-            self::MERCURE_AUTHORIZATION_COOKIE_NAME,
+            $hubInstance->getCookieName(),
             null,
             1,
-            $urlComponents['path'] ?? '/',
-            $this->getCookieDomain($request, $urlComponents),
-            'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
+            $path,
+            $domain,
+            $secure,
             true,
             false,
             $this->cookieSameSite
@@ -175,7 +181,7 @@ final class Authorization
 
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (\array_key_exists($hub, $cookies)) {
-            $message = \sprintf('The "mercureAuthorization" cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
+            $message = \sprintf('The subscriber authorization cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
             throw new RuntimeException($message);
         }
 

@@ -39,4 +39,14 @@ interface HubInterface
      * Publish an update to this Hub.
      */
     public function publish(Update $update): string;
+
+    /**
+     * Returns the version of the Mercure protocol spoken by this Hub.
+     */
+    public function getProtocolVersion(): ProtocolVersion;
+
+    /**
+     * Returns the name of the subscriber authorization cookie for this Hub.
+     */
+    public function getCookieName(): string;
 }

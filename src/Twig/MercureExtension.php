@@ -16,6 +16,8 @@ namespace Symfony\Component\Mercure\Twig;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\Internal\MatcherInput;
+use Symfony\Component\Mercure\ProtocolVersion;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -39,21 +41,31 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|null                                                                                                                       $topics  A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
-     * @param array{subscribe?: string[]|string, publish?: string[]|string, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
+     * @param string|string[]|array<string, string[]>|null                                                                                               $topics  A topic, an array of topics to subscribe for (matched as "exact"), or (Mercure protocol 1.0 hubs only) an associative array mapping a matcher type name ("exact", "urlpattern", or a registered extension type) to a list of patterns of that type. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     * @param array{subscribe?: string[]|string|array<string, string[]>, publish?: string[]|string|array<string, string[]>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
      *
-     * @return string The URL of the hub with the appropriate "topic" query parameters (if any)
+     * @return string The URL of the hub with the appropriate matcher query parameters (if any)
      */
     public function mercure(string|array|null $topics = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
-        $url = $this->hubRegistry->getHub($hub)->getPublicUrl();
+        $hubInstance = $this->hubRegistry->getHub($hub);
+        $url = $hubInstance->getPublicUrl();
         if (null !== $topics) {
             // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
             $separator = '?';
-            foreach ((array) $topics as $topic) {
-                $url .= $separator.'topic='.rawurlencode($topic);
-                if ('?' === $separator) {
+            if (ProtocolVersion::V1 === $hubInstance->getProtocolVersion()) {
+                $normalized = MatcherInput::normalize(\is_string($topics) ? [$topics] : $topics);
+                foreach ($normalized as $matcherType => $patterns) {
+                    $paramName = 'exact' === $matcherType ? 'match' : 'match_'.rawurlencode($matcherType);
+                    foreach ($patterns as $pattern) {
+                        $url .= $separator.$paramName.'='.rawurlencode($pattern);
+                        $separator = '&';
+                    }
+                }
+            } else {
+                foreach (MatcherInput::flattenToExactOrFail(\is_string($topics) ? [$topics] : $topics) as $topic) {
+                    $url .= $separator.'topic='.rawurlencode($topic);
                     $separator = '&';
                 }
             }
