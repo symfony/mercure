@@ -32,8 +32,6 @@ use Jose\Component\Signature\Serializer\CompactSerializer;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
-use Symfony\Component\Mercure\Internal\AuthorizationDetailsClaims;
-use Symfony\Component\Mercure\Internal\JwtLifetime;
 use Symfony\Contracts\HttpClient\Exception\ExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -74,7 +72,7 @@ final class WebTokenFactory implements TokenFactoryInterface
     ) {
         $this->algorithm = $algorithmInstance->name();
         $this->jwsBuilder = new JWSBuilder(new AlgorithmManager([$algorithmInstance]));
-        $this->jwtLifetime = JwtLifetime::resolve($jwtLifetime);
+        $this->jwtLifetime = JwtClaims::resolveLifetime($jwtLifetime);
     }
 
     /**
@@ -134,7 +132,7 @@ final class WebTokenFactory implements TokenFactoryInterface
 
     public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
     {
-        $additionalClaims = AuthorizationDetailsClaims::build($subscribe, $publish, $additionalClaims, $this->jwtLifetime);
+        $additionalClaims = JwtClaims::buildAuthorizationDetails($subscribe, $publish, $additionalClaims, $this->jwtLifetime);
 
         foreach (['exp', 'iat', 'nbf'] as $dateClaim) {
             if (isset($additionalClaims[$dateClaim]) && $additionalClaims[$dateClaim] instanceof \DateTimeInterface) {
