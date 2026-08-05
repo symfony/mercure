@@ -119,12 +119,7 @@ final class WebTokenFactory implements TokenFactoryInterface
         $jwk = JWKSet::createFromJson($content)->selectKey('sig', $algorithmInstance, null !== $keyId ? ['kid' => $keyId] : []);
 
         if (null === $jwk) {
-            throw new InvalidArgumentException(\sprintf(
-                'No signing key matching algorithm "%s"%s was found in the JWK Set at "%s".',
-                $algorithm,
-                null !== $keyId ? \sprintf(' and key ID "%s"', $keyId) : '',
-                $jwksUri
-            ));
+            throw new InvalidArgumentException(\sprintf('No signing key matching algorithm "%s"%s was found in the JWK Set at "%s".', $algorithm, null !== $keyId ? \sprintf(' and key ID "%s"', $keyId) : '', $jwksUri));
         }
 
         return new self($jwk, $algorithmInstance, $jwtLifetime);
