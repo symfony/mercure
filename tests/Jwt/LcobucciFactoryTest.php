@@ -76,7 +76,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     /**
      * @dataProvider provideCreateCases
      */
-    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt): void
+    public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt)
     {
         \assert('' !== $secret);
         $factory = new LcobucciFactory($secret, $algorithm, null);
@@ -87,14 +87,14 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testCreateWithEcdsaAlgorithm(): void
+    public function testCreateWithEcdsaAlgorithm()
     {
         $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
 
         $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create([], ['*']));
     }
 
-    public function testCreateWithEncryptedRSAAlgorithm(): void
+    public function testCreateWithEncryptedRSAAlgorithm()
     {
         $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing');
 
@@ -104,7 +104,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testInvalidAlgorithm(): void
+    public function testInvalidAlgorithm()
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unsupported algorithm "md5", expected one of "hmac.sha256", "hmac.sha384", "hmac.sha512", "ecdsa.sha256", "ecdsa.sha384", "ecdsa.sha512", "rsa.sha256", "rsa.sha384", "rsa.sha512".');
@@ -112,7 +112,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         new LcobucciFactory('!ChangeMe!', 'md5');
     }
 
-    public function testPureExactMatcherArrayIsEquivalentToFlatList(): void
+    public function testPureExactMatcherArrayIsEquivalentToFlatList()
     {
         $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
 
@@ -122,7 +122,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
-    public function testNonExactMatcherTypeThrows(): void
+    public function testNonExactMatcherTypeThrows()
     {
         $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
 
@@ -132,7 +132,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory->create([], ['urlpattern' => ['https://example.com/books/:id']]);
     }
 
-    public function testV1RequiresRegisteredClaims(): void
+    public function testV1RequiresRegisteredClaims()
     {
         $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
 
@@ -142,7 +142,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory->create(['a'], []);
     }
 
-    public function testV1RejectsNullOrEmptyRegisteredClaims(): void
+    public function testV1RejectsNullOrEmptyRegisteredClaims()
     {
         $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
 
@@ -152,7 +152,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory->create(['a'], [], ['iss' => 'https://example.com', 'aud' => '', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com']);
     }
 
-    public function testV1ClaimShape(): void
+    public function testV1ClaimShape()
     {
         $factory = new LcobucciFactory(self::SECRET, 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::V1);
 
@@ -187,7 +187,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->assertIsString($payload['jti']);
     }
 
-    public function testV1PayloadIsAttachedToSubscribeDetail(): void
+    public function testV1PayloadIsAttachedToSubscribeDetail()
     {
         $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
 
@@ -200,7 +200,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->assertSame(['foo' => 'bar'], $payload['authorization_details'][0]['payload']);
     }
 
-    public function testV1PayloadWithoutSubscribeTopicsThrows(): void
+    public function testV1PayloadWithoutSubscribeTopicsThrows()
     {
         $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
 

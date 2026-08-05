@@ -32,7 +32,7 @@ use Symfony\Component\Mercure\Update;
  */
 class MercureExtensionTest extends TestCase
 {
-    public function testMercure(): void
+    public function testMercure()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -53,7 +53,7 @@ class MercureExtensionTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
-    public function testMercureLastEventId(): void
+    public function testMercureLastEventId()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -77,7 +77,7 @@ class MercureExtensionTest extends TestCase
         $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Ffoo%2Fbar&lastEventID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f&Last-Event-ID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f', $url);
     }
 
-    public function testMercureV1FlatListIsExact(): void
+    public function testMercureV1FlatListIsExact()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -94,7 +94,7 @@ class MercureExtensionTest extends TestCase
         $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar', $url);
     }
 
-    public function testMercureV1MatcherTypedTopics(): void
+    public function testMercureV1MatcherTypedTopics()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -114,7 +114,7 @@ class MercureExtensionTest extends TestCase
         $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&match_urlpattern=https%3A%2F%2Ffoo%2Fbooks%2F%3Aid', $url);
     }
 
-    public function testMercureV1MatcherTypeIsUrlEncoded(): void
+    public function testMercureV1MatcherTypeIsUrlEncoded()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -131,7 +131,7 @@ class MercureExtensionTest extends TestCase
         $this->assertSame('https://example.com/.well-known/mercure?match_urlpattern%26topic%3Devil=https%3A%2F%2Ffoo%2Fbar', $url);
     }
 
-    public function testMercureLegacyHubThrowsOnNonExactMatcherType(): void
+    public function testMercureLegacyHubThrowsOnNonExactMatcherType()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
@@ -148,7 +148,7 @@ class MercureExtensionTest extends TestCase
         $extension->mercure(['urlpattern' => ['https://foo/books/:id']]);
     }
 
-    public function testMercureLegacyHubAcceptsPureExactMatcherArray(): void
+    public function testMercureLegacyHubAcceptsPureExactMatcherArray()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',

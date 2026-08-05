@@ -18,17 +18,17 @@ use Symfony\Component\Mercure\Jwt\JwtClaims;
 
 final class JwtClaimsTest extends TestCase
 {
-    public function testResolveLifetimeNullMeansNoAutoExpiration(): void
+    public function testResolveLifetimeNullMeansNoAutoExpiration()
     {
         $this->assertNull(JwtClaims::resolveLifetime(null));
     }
 
-    public function testResolveLifetimeExplicitValueIsReturnedAsIs(): void
+    public function testResolveLifetimeExplicitValueIsReturnedAsIs()
     {
         $this->assertSame(3600, JwtClaims::resolveLifetime(3600));
     }
 
-    public function testResolveLifetimeZeroFallsBackToSessionCookieLifetimeOrDefault(): void
+    public function testResolveLifetimeZeroFallsBackToSessionCookieLifetimeOrDefault()
     {
         $this->assertSame((int) \ini_get('session.cookie_lifetime') ?: 3600, JwtClaims::resolveLifetime(0));
     }
