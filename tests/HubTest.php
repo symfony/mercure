@@ -34,7 +34,7 @@ class HubTest extends TestCase
     public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyIqIl0sInB1Ymxpc2giOlsiKiJdfX0.M1yJUov4a6oLrigTqBZQO_ohWUsg3Uz1bnLD4MIyWLo';
     public const AUTH_HEADER = 'Authorization: Bearer '.self::JWT;
 
-    public function testPublish()
+    public function testPublish(): void
     {
         $httpClient = new MockHttpClient(function (string $method, string $url, array $options = []): ResponseInterface {
             $this->assertSame('POST', $method);
@@ -68,7 +68,7 @@ class HubTest extends TestCase
         $this->assertSame('id', $id);
     }
 
-    public function testNetworkIssue()
+    public function testNetworkIssue(): void
     {
         $httpClient = new MockHttpClient(function (string $method, string $url, array $options = []): ResponseInterface {
             $this->assertSame('POST', $method);
@@ -95,7 +95,7 @@ class HubTest extends TestCase
         ));
     }
 
-    public function testInvalidJwt()
+    public function testInvalidJwt(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The provided JWT is not valid');
@@ -106,7 +106,7 @@ class HubTest extends TestCase
         $hub->publish(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!'));
     }
 
-    public function testDefaultsToLegacyProtocolVersionAndCookieName()
+    public function testDefaultsToLegacyProtocolVersionAndCookieName(): void
     {
         $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT));
 
@@ -114,7 +114,7 @@ class HubTest extends TestCase
         $this->assertSame('mercureAuthorization', $hub->getCookieName());
     }
 
-    public function testExplicitProtocolVersionAndCustomCookieName()
+    public function testExplicitProtocolVersionAndCustomCookieName(): void
     {
         $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT), protocolVersion: ProtocolVersion::V1, cookieName: 'custom_cookie');
 
@@ -122,7 +122,7 @@ class HubTest extends TestCase
         $this->assertSame('custom_cookie', $hub->getCookieName());
     }
 
-    public function testDefaultCookieNameForV1Protocol()
+    public function testDefaultCookieNameForV1Protocol(): void
     {
         $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT), protocolVersion: ProtocolVersion::V1);
 

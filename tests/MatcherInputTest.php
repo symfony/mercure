@@ -19,44 +19,44 @@ use Symfony\Component\Mercure\MatcherInput;
 
 final class MatcherInputTest extends TestCase
 {
-    public function testNormalizeNull()
+    public function testNormalizeNull(): void
     {
         $this->assertSame([], MatcherInput::normalize(null));
     }
 
-    public function testNormalizeEmptyArray()
+    public function testNormalizeEmptyArray(): void
     {
         $this->assertSame([], MatcherInput::normalize([]));
     }
 
-    public function testNormalizeFlatListIsWrappedAsExact()
+    public function testNormalizeFlatListIsWrappedAsExact(): void
     {
         $this->assertSame(['exact' => ['a', 'b']], MatcherInput::normalize(['a', 'b']));
     }
 
-    public function testNormalizeMatcherTypedArrayIsReturnedAsIs()
+    public function testNormalizeMatcherTypedArrayIsReturnedAsIs(): void
     {
         $input = ['exact' => ['a'], 'urlpattern' => ['https://example.com/books/:id']];
 
         $this->assertSame($input, MatcherInput::normalize($input));
     }
 
-    public function testFlattenToExactOrFailWithNull()
+    public function testFlattenToExactOrFailWithNull(): void
     {
         $this->assertSame([], MatcherInput::flattenToExactOrFail(null));
     }
 
-    public function testFlattenToExactOrFailWithFlatList()
+    public function testFlattenToExactOrFailWithFlatList(): void
     {
         $this->assertSame(['a', 'b'], MatcherInput::flattenToExactOrFail(['a', 'b']));
     }
 
-    public function testFlattenToExactOrFailWithPureExactMap()
+    public function testFlattenToExactOrFailWithPureExactMap(): void
     {
         $this->assertSame(['a', 'b'], MatcherInput::flattenToExactOrFail(['exact' => ['a', 'b']]));
     }
 
-    public function testFlattenToExactOrFailThrowsOnNonExactMatcherType()
+    public function testFlattenToExactOrFailThrowsOnNonExactMatcherType(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Topic matcher type(s) "urlpattern" require the Mercure protocol 1.0');

@@ -37,7 +37,7 @@ final class JwtClaims
     /**
      * @param array<int, string>|array<string, string[]>|null $subscribe
      * @param array<int, string>|array<string, string[]>|null $publish
-     * @param mixed[]                                          $additionalClaims
+     * @param mixed[]                                         $additionalClaims
      *
      * @return mixed[]
      */

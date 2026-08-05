@@ -47,9 +47,9 @@ final class MatcherInput
      *
      * @param string[]|array<string, string[]>|null $topics
      *
-     * @return string[]
-     *
      * @throws InvalidArgumentException if a non-"exact" matcher type is present
+     *
+     * @return string[]
      */
     public static function flattenToExactOrFail(?array $topics): array
     {
@@ -59,10 +59,7 @@ final class MatcherInput
 
         $unsupported = array_diff(array_keys($topics), ['exact']);
         if ([] !== $unsupported) {
-            throw new InvalidArgumentException(\sprintf(
-                'Topic matcher type(s) "%s" require the Mercure protocol 1.0 (see Symfony\Component\Mercure\ProtocolVersion::V1); this factory only supports "exact" topic matching.',
-                implode('", "', $unsupported)
-            ));
+            throw new InvalidArgumentException(\sprintf('Topic matcher type(s) "%s" require the Mercure protocol 1.0 (see Symfony\Component\Mercure\ProtocolVersion::V1); this factory only supports "exact" topic matching.', implode('", "', $unsupported)));
         }
 
         return $topics['exact'] ?? [];
