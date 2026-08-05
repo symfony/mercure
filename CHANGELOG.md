@@ -11,6 +11,7 @@ CHANGELOG
 * Add Mercure protocol 1.0 support (the `authorization_details` claim, an RFC 9068 access token, `at+jwt`) to `Symfony\Component\Mercure\Jwt\LcobucciFactory`, selected via its new `$protocolVersion` constructor parameter
 * Allow `TokenFactoryInterface::create()`'s `$subscribe`/`$publish` parameters, and the Twig `mercure()` function's `$topics` parameter and `subscribe`/`publish` options, to be an associative array mapping a topic matcher type (`exact`, `urlpattern`, or a registered extension type) to a list of patterns, in addition to the existing flat topic list
 * Add `FactoryTokenProvider`'s `$additionalClaims` constructor parameter, forwarded to the wrapped factory
+* Add `Symfony\Component\Mercure\Jwt\DefaultClaimsTokenFactory`, a `TokenFactoryInterface` decorator merging in a fixed set of claims (e.g. a hub's `iss`/`aud`/`sub`/`client_id`) so `Authorization` and the Twig `mercure()` function, which call `HubInterface::getFactory()` directly, get them without repeating them on every call
 
 0.7.2
 -----
