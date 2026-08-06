@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
+use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\WebTokenFactory;
 
 final class WebTokenFactoryTest extends TestCase
@@ -53,7 +54,7 @@ final class WebTokenFactoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "iss" additional claim is required');
 
-        $factory->create(['a'], []);
+        $factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])]);
     }
 
     public function testRejectsNullOrEmptyRegisteredClaims()
@@ -63,7 +64,7 @@ final class WebTokenFactoryTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "aud" additional claim is required');
 
-        $factory->create(['a'], [], ['iss' => 'https://example.com', 'aud' => '', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com']);
+        $factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])], ['iss' => 'https://example.com', 'aud' => '', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com']);
     }
 
     public function testClaimShape()
@@ -71,8 +72,10 @@ final class WebTokenFactoryTest extends TestCase
         $factory = WebTokenFactory::fromSecret(self::SECRET, 'hmac.sha256', 3600);
 
         [$header, $payload] = $this->decode($factory->create(
-            ['exact' => ['https://example.com/books/1'], 'urlpattern' => ['https://example.com/reviews/:id']],
-            ['*'],
+            [
+                new Grant([Grant::ACTION_SUBSCRIBE], ['exact' => ['https://example.com/books/1'], 'urlpattern' => ['https://example.com/reviews/:id']]),
+                new Grant([Grant::ACTION_PUBLISH], ['*']),
+            ],
             self::REQUIRED_CLAIMS
         ));
 
@@ -106,25 +109,23 @@ final class WebTokenFactoryTest extends TestCase
         $factory = WebTokenFactory::fromSecret(self::SECRET);
 
         [, $payload] = $this->decode($factory->create(
-            ['a'],
-            null,
-            self::REQUIRED_CLAIMS + ['mercure' => ['payload' => ['foo' => 'bar']]]
+            [new Grant([Grant::ACTION_SUBSCRIBE], ['a'], ['foo' => 'bar'])],
+            self::REQUIRED_CLAIMS
         ));
 
         $this->assertSame(['foo' => 'bar'], $payload['authorization_details'][0]['payload']);
     }
 
-    public function testPayloadWithoutSubscribeTopicsThrows()
+    public function testPayloadWithoutTopicsThrows()
     {
         $factory = WebTokenFactory::fromSecret(self::SECRET);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('requires at least one subscribe topic');
+        $this->expectExceptionMessage('requires at least one topic');
 
         $factory->create(
-            [],
-            null,
-            self::REQUIRED_CLAIMS + ['mercure' => ['payload' => ['foo' => 'bar']]]
+            [new Grant([Grant::ACTION_SUBSCRIBE], [], ['foo' => 'bar'])],
+            self::REQUIRED_CLAIMS
         );
     }
 
@@ -135,7 +136,7 @@ final class WebTokenFactoryTest extends TestCase
 
         $factory = WebTokenFactory::fromJwksUri('https://example.com/jwks.json', $httpClient, 'hmac.sha256', 'key1');
 
-        [$header, $payload] = $this->decode($factory->create(['a'], [], self::REQUIRED_CLAIMS));
+        [$header, $payload] = $this->decode($factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])], self::REQUIRED_CLAIMS));
 
         $this->assertSame('HS256', $header['alg']);
         $this->assertSame(['subscribe'], $payload['authorization_details'][0]['actions']);

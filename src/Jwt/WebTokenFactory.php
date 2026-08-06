@@ -125,9 +125,9 @@ final class WebTokenFactory implements TokenFactoryInterface
         return new self($jwk, $algorithmInstance, $jwtLifetime);
     }
 
-    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
+    public function create(array $grants = [], array $additionalClaims = []): string
     {
-        $additionalClaims = JwtClaims::buildAuthorizationDetails($subscribe, $publish, $additionalClaims, $this->jwtLifetime);
+        $additionalClaims = JwtClaims::buildAuthorizationDetails($grants, $additionalClaims, $this->jwtLifetime);
 
         foreach (['exp', 'iat', 'nbf'] as $dateClaim) {
             if (isset($additionalClaims[$dateClaim]) && $additionalClaims[$dateClaim] instanceof \DateTimeInterface) {
