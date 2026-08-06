@@ -21,20 +21,17 @@ namespace Symfony\Component\Mercure\Jwt;
 interface TokenFactoryInterface
 {
     /**
-     * Create a token that allows publishing to $publish and subscribing to $subscribe.
+     * Create a token carrying the given grants and/or additional claims.
      *
-     * @param array<int, string>|array<string, string[]>|null $subscribe        a flat list of topics (matched as
-     *                                                                          "exact"), or an associative array
-     *                                                                          mapping a matcher type name (e.g.
-     *                                                                          "exact", "urlpattern", or a
-     *                                                                          registered extension type) to a list
-     *                                                                          of patterns of that type. Matcher
-     *                                                                          types other than "exact" are only
-     *                                                                          meaningful for factories that
-     *                                                                          support the Mercure protocol 1.0
-     *                                                                          (see {@see ProtocolVersion::V1}).
-     * @param array<int, string>|array<string, string[]>|null $publish          same shape as $subscribe
-     * @param mixed[]                                         $additionalClaims an array of additional claims for the JWT
+     * Under the legacy Mercure protocol (0.x), which has no "authorization_details" concept,
+     * a factory derives its "mercure.subscribe"/"mercure.publish" claim from each grant's
+     * {@see Grant::ACTION_SUBSCRIBE}/{@see Grant::ACTION_PUBLISH} action and rejects a grant
+     * carrying a "payload" (see {@see ProtocolVersion::Legacy}).
+     *
+     * @param Grant[] $grants
+     * @param mixed[] $additionalClaims an array of additional claims for the JWT, e.g. the
+     *                                  "iss"/"aud"/"sub"/"client_id" claims required by RFC 9068
+     *                                  access tokens under the Mercure protocol 1.0
      */
-    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string;
+    public function create(array $grants = [], array $additionalClaims = []): string;
 }

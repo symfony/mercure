@@ -41,8 +41,8 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|array<string, string[]>|null                                                                                                                                               $topics  A topic, an array of topics to subscribe for (matched as "exact"), or (Mercure protocol 1.0 hubs only) an associative array mapping a matcher type name ("exact", "urlpattern", or a registered extension type) to a list of patterns of that type. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
-     * @param array{subscribe?: string[]|string|array<string, string[]>, publish?: string[]|string|array<string, string[]>, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
+     * @param string|string[]|array<string, string[]>|null                                                                                                                                                                    $topics  A topic, an array of topics to subscribe for (matched as "exact"), or (Mercure protocol 1.0 hubs only) an associative array mapping a matcher type name ("exact", "urlpattern", or a registered extension type) to a list of patterns of that type. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     * @param array{subscribe?: string[]|string|array<string, string[]>, publish?: string[]|string|array<string, string[]>, additionalClaims?: array<string, mixed>, payload?: mixed, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
      *
      * @return string The URL of the hub with the appropriate matcher query parameters (if any)
      */
@@ -80,14 +80,14 @@ final class MercureExtension extends AbstractExtension
         if (
             null === $this->authorization
             || null === $this->requestStack
-            || (!isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims']))
+            || (!isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims']) && !isset($options['payload']))
             /* @phpstan-ignore-next-line */
             || null === $request = method_exists($this->requestStack, 'getMainRequest') ? $this->requestStack->getMainRequest() : $this->requestStack->getMasterRequest()
         ) {
             return $url;
         }
 
-        $this->authorization->setCookie($request, $options['subscribe'] ?? [], $options['publish'] ?? [], $options['additionalClaims'] ?? [], $hub);
+        $this->authorization->setCookie($request, $options['subscribe'] ?? [], $options['publish'] ?? [], $options['additionalClaims'] ?? [], $hub, $options['payload'] ?? null);
 
         return $url;
     }

@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Jwt;
 
 use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\ClaimsFormatter;
 use Lcobucci\JWT\Configuration;
 use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
@@ -78,25 +77,32 @@ final class LcobucciFactory implements TokenFactoryInterface
         $this->jwtLifetime = JwtClaims::resolveLifetime($jwtLifetime);
     }
 
-    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
+    public function create(array $grants = [], array $additionalClaims = []): string
     {
         return ProtocolVersion::V1 === $this->protocolVersion
-            ? $this->createV1($subscribe, $publish, $additionalClaims)
-            : $this->createLegacy($subscribe, $publish, $additionalClaims);
+            ? $this->createV1($grants, $additionalClaims)
+            : $this->createLegacy($grants, $additionalClaims);
     }
 
-    private function createLegacy(?array $subscribe, ?array $publish, array $additionalClaims): string
+    /**
+     * @param Grant[] $grants
+     */
+    private function createLegacy(array $grants, array $additionalClaims): string
     {
         if (null !== $this->jwtLifetime && !\array_key_exists('exp', $additionalClaims)) {
             $additionalClaims['exp'] = new \DateTimeImmutable("+{$this->jwtLifetime} seconds");
         }
 
         $tokens = [];
-        if (null !== $publish) {
-            $tokens['publish'] = MatcherInput::flattenToExactOrFail($publish);
-        }
-        if (null !== $subscribe) {
-            $tokens['subscribe'] = MatcherInput::flattenToExactOrFail($subscribe);
+        foreach ($grants as $grant) {
+            if (null !== $grant->payload) {
+                throw new InvalidArgumentException('A grant "payload" is only meaningful under the Mercure protocol 1.0; this factory is configured for the legacy protocol.');
+            }
+
+            $topics = MatcherInput::flattenToExactOrFail($grant->topics);
+            foreach ($grant->actions as $action) {
+                $tokens[$action] = array_merge($tokens[$action] ?? [], $topics);
+            }
         }
 
         $additionalClaims['mercure'] = array_merge($tokens, $additionalClaims['mercure'] ?? []);
@@ -104,38 +110,14 @@ final class LcobucciFactory implements TokenFactoryInterface
         return $this->buildToken($this->configurations->builder(), $additionalClaims);
     }
 
-    private function createV1(?array $subscribe, ?array $publish, array $additionalClaims): string
+    /**
+     * @param Grant[] $grants
+     */
+    private function createV1(array $grants, array $additionalClaims): string
     {
-        $additionalClaims = JwtClaims::buildAuthorizationDetails($subscribe, $publish, $additionalClaims, $this->jwtLifetime);
+        $additionalClaims = JwtClaims::buildAuthorizationDetails($grants, $additionalClaims, $this->jwtLifetime);
 
-        // RFC 9068 "iat"/"exp" are NumericDate values; "lcobucci/jwt"'s default claim formatter
-        // emits them as floats with microsecond precision instead, which some resource servers
-        // reject. Force plain Unix timestamps, matching WebTokenFactory, with our own formatter
-        // rather than Encoding\ChainedFormatter::withUnixTimestampDates(): that method isn't
-        // available on every "lcobucci/jwt" version this factory supports.
-        $builder = $this->configurations->builder($this->integerTimestampFormatter());
-
-        return $this->buildToken($builder, $additionalClaims, ['typ' => 'at+jwt']);
-    }
-
-    private function integerTimestampFormatter(): ClaimsFormatter
-    {
-        return new class implements ClaimsFormatter {
-            public function formatClaims(array $claims): array
-            {
-                foreach ([RegisteredClaims::ISSUED_AT, RegisteredClaims::EXPIRATION_TIME, RegisteredClaims::NOT_BEFORE] as $name) {
-                    if (isset($claims[$name]) && $claims[$name] instanceof \DateTimeInterface) {
-                        $claims[$name] = $claims[$name]->getTimestamp();
-                    }
-                }
-
-                if (isset($claims[RegisteredClaims::AUDIENCE]) && 1 === \count($claims[RegisteredClaims::AUDIENCE])) {
-                    $claims[RegisteredClaims::AUDIENCE] = current($claims[RegisteredClaims::AUDIENCE]);
-                }
-
-                return $claims;
-            }
-        };
+        return $this->buildToken($this->configurations->builder(), $additionalClaims, ['typ' => 'at+jwt']);
     }
 
     /**

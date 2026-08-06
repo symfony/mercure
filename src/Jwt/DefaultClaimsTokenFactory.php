@@ -32,8 +32,8 @@ final class DefaultClaimsTokenFactory implements TokenFactoryInterface
     ) {
     }
 
-    public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
+    public function create(array $grants = [], array $additionalClaims = []): string
     {
-        return $this->decorated->create($subscribe, $publish, $additionalClaims + $this->defaultClaims);
+        return $this->decorated->create($grants, $additionalClaims + $this->defaultClaims);
     }
 }

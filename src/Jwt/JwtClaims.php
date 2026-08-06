@@ -29,51 +29,56 @@ final class JwtClaims
 {
     private const AUTHORIZATION_DETAIL_TYPE = 'https://mercure.rocks/authorization-detail';
 
+    /**
+     * "0" auto-picks a default ("session.cookie_lifetime", falling back to 3600 if that's unset/0);
+     * any other int is returned as-is; "null" means "no automatic expiration" — it is returned as-is
+     * too, but callers must then set "exp" themselves in additionalClaims, or the token never expires.
+     */
     public static function resolveLifetime(?int $jwtLifetime): ?int
     {
         return 0 === $jwtLifetime ? ((int) \ini_get('session.cookie_lifetime') ?: 3600) : $jwtLifetime;
     }
 
     /**
-     * @param array<int, string>|array<string, string[]>|null $subscribe
-     * @param array<int, string>|array<string, string[]>|null $publish
-     * @param mixed[]                                         $additionalClaims
+     * @param Grant[] $grants
+     * @param mixed[] $additionalClaims
+     * @param int|null $jwtLifetime already resolved via self::resolveLifetime(); "null" skips the automatic
+     *                               "exp" claim entirely (non-expiring token unless the caller sets "exp" in
+     *                               $additionalClaims itself), any other int sets "exp" to now + that many
+     *                               seconds when "exp" isn't already present
      *
      * @return mixed[]
      */
-    public static function buildAuthorizationDetails(?array $subscribe, ?array $publish, array $additionalClaims, ?int $jwtLifetime): array
+    public static function buildAuthorizationDetails(array $grants, array $additionalClaims, ?int $jwtLifetime): array
     {
-        $payload = $additionalClaims['mercure']['payload'] ?? null;
-        unset($additionalClaims['mercure']);
-
         $entries = [];
 
-        if (null !== $subscribe) {
-            $topics = self::toTopicObjects(MatcherInput::normalize($subscribe));
-            if ([] !== $topics) {
-                $entry = [
-                    'type' => self::AUTHORIZATION_DETAIL_TYPE,
-                    'actions' => ['subscribe'],
-                    'topics' => $topics,
-                ];
-                if (null !== $payload) {
-                    $entry['payload'] = $payload;
-                }
-                $entries[] = $entry;
-            } elseif (null !== $payload) {
-                throw new InvalidArgumentException('The "payload" additional claim requires at least one subscribe topic.');
+        foreach ($grants as $grant) {
+            if ([] === $grant->actions) {
+                throw new InvalidArgumentException('A grant must declare at least one action.');
             }
-        }
 
-        if (null !== $publish) {
-            $topics = self::toTopicObjects(MatcherInput::normalize($publish));
-            if ([] !== $topics) {
-                $entries[] = [
-                    'type' => self::AUTHORIZATION_DETAIL_TYPE,
-                    'actions' => ['publish'],
-                    'topics' => $topics,
-                ];
+            $topics = self::toTopicObjects(MatcherInput::normalize($grant->topics));
+            if ([] === $topics) {
+                if (null !== $grant->payload) {
+                    throw new InvalidArgumentException('A grant "payload" requires at least one topic.');
+                }
+                continue;
             }
+
+            if (null !== $grant->payload && !\in_array(Grant::ACTION_SUBSCRIBE, $grant->actions, true)) {
+                throw new InvalidArgumentException('A grant "payload" is only meaningful when its "actions" include "subscribe"; the hub never surfaces one on a publish-only grant.');
+            }
+
+            $entry = [
+                'type' => self::AUTHORIZATION_DETAIL_TYPE,
+                'actions' => $grant->actions,
+                'topics' => $topics,
+            ];
+            if (null !== $grant->payload) {
+                $entry['payload'] = $grant->payload;
+            }
+            $entries[] = $entry;
         }
 
         if ([] !== $entries) {
@@ -89,6 +94,10 @@ final class JwtClaims
 
         $additionalClaims['iat'] ??= new \DateTimeImmutable();
         $additionalClaims['jti'] ??= bin2hex(random_bytes(16));
+        // A "null" $jwtLifetime intentionally means "non-expiring token": skip the automatic "exp"
+        // claim rather than defaulting it, unlike "0" (see resolveLifetime()). A resource server may
+        // reject an RFC 9068 access token that never carries one, so callers relying on "null" here
+        // must set "exp" themselves in $additionalClaims.
         if (null !== $jwtLifetime && !\array_key_exists('exp', $additionalClaims)) {
             $additionalClaims['exp'] = new \DateTimeImmutable("+{$jwtLifetime} seconds");
         }

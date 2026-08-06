@@ -12,6 +12,9 @@ CHANGELOG
 * Allow `TokenFactoryInterface::create()`'s `$subscribe`/`$publish` parameters, and the Twig `mercure()` function's `$topics` parameter and `subscribe`/`publish` options, to be an associative array mapping a topic matcher type (`exact`, `urlpattern`, or a registered extension type) to a list of patterns, in addition to the existing flat topic list
 * Add `FactoryTokenProvider`'s `$additionalClaims` constructor parameter, forwarded to the wrapped factory
 * Add `Symfony\Component\Mercure\Jwt\DefaultClaimsTokenFactory`, a `TokenFactoryInterface` decorator merging in a fixed set of claims (e.g. a hub's `iss`/`aud`/`sub`/`client_id`) so `Authorization` and the Twig `mercure()` function, which call `HubInterface::getFactory()` directly, get them without repeating them on every call
+* Add `Symfony\Component\Mercure\Jwt\Grant` (`actions`/`topics`/`payload`), replacing `TokenFactoryInterface::create()`'s `$subscribe`/`$publish` parameters and the `additionalClaims['mercure']['payload']` bag key; a single `Grant` can now carry both `subscribe` and `publish` actions over the same topics, producing one `authorization_details` entry instead of two, and a `payload` is validated (requires a topic, only meaningful with the `subscribe` action) instead of silently colliding with the legacy `mercure` claim's own use of the same key
+* Add `Authorization::createCookie()`/`setCookie()`'s `$payload` parameter and the Twig `mercure()` function's `payload` option, translated to a `Grant` internally
+* `Symfony\Component\Mercure\Jwt\LcobucciFactory` no longer forces integer `exp`/`iat`/`nbf` under protocol 1.0; a resource server is expected to accept RFC 9068's `NumericDate` as either an integer or a float carrying sub-second precision, `lcobucci/jwt`'s own default
 
 0.7.2
 -----

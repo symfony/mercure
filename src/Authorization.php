@@ -17,6 +17,7 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
+use Symfony\Component\Mercure\Jwt\Grant;
 
 /**
  * Manages the subscriber authorization cookie.
@@ -44,10 +45,11 @@ final class Authorization
      * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
+     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
      */
-    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null): void
+    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null, mixed $payload = null): void
     {
-        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
+        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub, $payload));
     }
 
     /**
@@ -67,8 +69,9 @@ final class Authorization
      * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
+     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
      */
-    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
+    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null, mixed $payload = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
@@ -86,14 +89,17 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
+        $grants = [];
         if (null !== $subscribe) {
-            $subscribe = (array) $subscribe;
+            $grants[] = new Grant([Grant::ACTION_SUBSCRIBE], (array) $subscribe, $payload);
+        } elseif (null !== $payload) {
+            throw new InvalidArgumentException('A "payload" requires a non-null "$subscribe".');
         }
         if (null !== $publish) {
-            $publish = (array) $publish;
+            $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $publish);
         }
 
-        $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
+        $token = $tokenFactory->create($grants, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);

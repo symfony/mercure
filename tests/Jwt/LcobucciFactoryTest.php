@@ -16,6 +16,7 @@ namespace Symfony\Component\Mercure\Tests\Jwt;
 use Lcobucci\JWT\Signer\Key;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
+use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\ProtocolVersion;
 
@@ -83,7 +84,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
         $this->assertSame(
             $expectedJwt,
-            $factory->create($subscribe, $publish, $additionalClaims)
+            $factory->create($this->grants($subscribe, $publish), $additionalClaims)
         );
     }
 
@@ -91,7 +92,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     {
         $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
 
-        $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create([], ['*']));
+        $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create($this->grants([], ['*'])));
     }
 
     public function testCreateWithEncryptedRSAAlgorithm()
@@ -100,7 +101,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.AHKMv2PQOGq5M8VhEM1Snf7QMHoTEyeuY0-L7GjRGkaygb3TyRWFO__uvIkStj1shOykO293tqGd_pijtRrbvul4ZdOQKYBjOxk7tNsQ_gQgepptneYr4eL8F9r2_KgUVrb-xcl0YzobH389OKBhuJ8HRQ-gADniBqbSuURwFyKXcEXz-GiZ_y9hTJ4tQ4bY28SlER_-LpjRCadUik4SqXLt--8VIoJ7zHvxCSOMIHFbLZ1CFaycMuXly1w7W8XKCfpshCobbi5Xt2QndAhTgpfvmnx1mn7e1ng9QDYzNHqNb6iZzxSbZ8bnttCwVv7uuBU2tEDxBXQB-TeVSD71pw',
-            $factory->create([], ['*'])
+            $factory->create($this->grants([], ['*']))
         );
     }
 
@@ -117,8 +118,8 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
 
         $this->assertSame(
-            $factory->create([], ['exact' => ['*']]),
-            $factory->create([], ['*'])
+            $factory->create($this->grants([], ['exact' => ['*']])),
+            $factory->create($this->grants([], ['*']))
         );
     }
 
@@ -129,7 +130,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Topic matcher type(s) "urlpattern" require the Mercure protocol 1.0');
 
-        $factory->create([], ['urlpattern' => ['https://example.com/books/:id']]);
+        $factory->create($this->grants([], ['urlpattern' => ['https://example.com/books/:id']]));
     }
 
     public function testV1RequiresRegisteredClaims()
@@ -139,7 +140,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "iss" additional claim is required');
 
-        $factory->create(['a'], []);
+        $factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])]);
     }
 
     public function testV1RejectsNullOrEmptyRegisteredClaims()
@@ -149,7 +150,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('The "aud" additional claim is required');
 
-        $factory->create(['a'], [], ['iss' => 'https://example.com', 'aud' => '', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com']);
+        $factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])], ['iss' => 'https://example.com', 'aud' => '', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com']);
     }
 
     public function testV1ClaimShape()
@@ -157,8 +158,10 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory = new LcobucciFactory(self::SECRET, 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::V1);
 
         [$header, $payload] = $this->decode($factory->create(
-            ['exact' => ['https://example.com/books/1'], 'urlpattern' => ['https://example.com/reviews/:id']],
-            ['*'],
+            [
+                new Grant([Grant::ACTION_SUBSCRIBE], ['exact' => ['https://example.com/books/1'], 'urlpattern' => ['https://example.com/reviews/:id']]),
+                new Grant([Grant::ACTION_PUBLISH], ['*']),
+            ],
             self::REQUIRED_CLAIMS
         ));
 
@@ -182,9 +185,27 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $this->assertSame(['publish'], $publishDetail['actions']);
         $this->assertSame([['match' => '*']], $publishDetail['topics']);
 
-        $this->assertIsInt($payload['exp']);
-        $this->assertIsInt($payload['iat']);
+        // "lcobucci/jwt"'s default formatter emits microsecond-precision floats, not integers; the
+        // Mercure hub accepts both (confirmed against a real hub, including expiry enforcement on a
+        // float "exp"), so this factory no longer forces integers (see WebTokenFactory for a case
+        // where it still must: it json_encode()s the claims itself, with no formatter of its own).
+        $this->assertIsFloat($payload['exp']);
+        $this->assertIsFloat($payload['iat']);
         $this->assertIsString($payload['jti']);
+    }
+
+    public function testV1SingleGrantWithBothActionsProducesOneEntry()
+    {
+        $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
+
+        [, $payload] = $this->decode($factory->create(
+            [new Grant([Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], ['a'])],
+            self::REQUIRED_CLAIMS
+        ));
+
+        $this->assertCount(1, $payload['authorization_details']);
+        $this->assertSame(['subscribe', 'publish'], $payload['authorization_details'][0]['actions']);
+        $this->assertSame([['match' => 'a']], $payload['authorization_details'][0]['topics']);
     }
 
     public function testV1PayloadIsAttachedToSubscribeDetail()
@@ -192,26 +213,58 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
 
         [, $payload] = $this->decode($factory->create(
-            ['a'],
-            null,
-            self::REQUIRED_CLAIMS + ['mercure' => ['payload' => ['foo' => 'bar']]]
+            [new Grant([Grant::ACTION_SUBSCRIBE], ['a'], ['foo' => 'bar'])],
+            self::REQUIRED_CLAIMS
         ));
 
         $this->assertSame(['foo' => 'bar'], $payload['authorization_details'][0]['payload']);
     }
 
-    public function testV1PayloadWithoutSubscribeTopicsThrows()
+    public function testV1PayloadWithoutTopicsThrows()
     {
         $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('requires at least one subscribe topic');
+        $this->expectExceptionMessage('requires at least one topic');
 
         $factory->create(
-            [],
-            null,
-            self::REQUIRED_CLAIMS + ['mercure' => ['payload' => ['foo' => 'bar']]]
+            [new Grant([Grant::ACTION_SUBSCRIBE], [], ['foo' => 'bar'])],
+            self::REQUIRED_CLAIMS
         );
+    }
+
+    public function testV1PayloadOnPublishOnlyGrantThrows()
+    {
+        $factory = new LcobucciFactory(self::SECRET, protocolVersion: ProtocolVersion::V1);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('only meaningful when its "actions" include "subscribe"');
+
+        $factory->create(
+            [new Grant([Grant::ACTION_PUBLISH], ['a'], ['foo' => 'bar'])],
+            self::REQUIRED_CLAIMS
+        );
+    }
+
+    /**
+     * @param array<int, string>|array<string, string[]>|null $subscribe
+     * @param array<int, string>|array<string, string[]>|null $publish
+     *
+     * @return Grant[]
+     */
+    private function grants(?array $subscribe, ?array $publish): array
+    {
+        // order matches the legacy "mercure" claim's historical key insertion order (publish, then
+        // subscribe), so the byte-identical JWT fixtures in provideCreateCases() keep matching.
+        $grants = [];
+        if (null !== $publish) {
+            $grants[] = new Grant([Grant::ACTION_PUBLISH], $publish);
+        }
+        if (null !== $subscribe) {
+            $grants[] = new Grant([Grant::ACTION_SUBSCRIBE], $subscribe);
+        }
+
+        return $grants;
     }
 
     /**

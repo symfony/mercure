@@ -15,33 +15,38 @@ namespace Symfony\Component\Mercure\Tests\Jwt;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Jwt\DefaultClaimsTokenFactory;
+use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 
 final class DefaultClaimsTokenFactoryTest extends TestCase
 {
     public function testDefaultClaimsAreMergedIn()
     {
+        $grants = [new Grant([Grant::ACTION_SUBSCRIBE], ['a'])];
+
         $decorated = $this->createMock(TokenFactoryInterface::class);
         $decorated
             ->expects($this->once())
             ->method('create')
-            ->with(['a'], ['b'], ['iss' => 'https://example.com', 'sub' => 'default-sub'])
+            ->with($this->equalTo($grants), ['iss' => 'https://example.com', 'sub' => 'default-sub'])
         ;
 
         $factory = new DefaultClaimsTokenFactory($decorated, ['iss' => 'https://example.com', 'sub' => 'default-sub']);
-        $factory->create(['a'], ['b']);
+        $factory->create($grants);
     }
 
     public function testCallTimeClaimsOverrideDefaults()
     {
+        $grants = [new Grant([Grant::ACTION_SUBSCRIBE], ['a'])];
+
         $decorated = $this->createMock(TokenFactoryInterface::class);
         $decorated
             ->expects($this->once())
             ->method('create')
-            ->with(['a'], ['b'], ['sub' => 'per-request-sub', 'iss' => 'https://example.com'])
+            ->with($this->equalTo($grants), ['sub' => 'per-request-sub', 'iss' => 'https://example.com'])
         ;
 
         $factory = new DefaultClaimsTokenFactory($decorated, ['iss' => 'https://example.com', 'sub' => 'default-sub']);
-        $factory->create(['a'], ['b'], ['sub' => 'per-request-sub']);
+        $factory->create($grants, ['sub' => 'per-request-sub']);
     }
 }

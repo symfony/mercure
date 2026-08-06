@@ -16,6 +16,7 @@ namespace Symfony\Component\Mercure\Tests\Jwt;
 use Lcobucci\JWT\Signer\Key;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mercure\Jwt\FactoryTokenProvider;
+use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 
@@ -28,7 +29,7 @@ final class FactoryTokenProviderTest extends TestCase
         }
 
         $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
-        $provider = new FactoryTokenProvider($factory, [], ['*']);
+        $provider = new FactoryTokenProvider($factory, [new Grant([Grant::ACTION_PUBLISH], ['*']), new Grant([Grant::ACTION_SUBSCRIBE], [])]);
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.ZTK3JhEKO1338LAgRMw6j0lkGRMoaZtU4EtGiAylAns',
@@ -38,14 +39,16 @@ final class FactoryTokenProviderTest extends TestCase
 
     public function testAdditionalClaimsAreForwardedToTheFactory()
     {
+        $grants = [new Grant([Grant::ACTION_SUBSCRIBE], ['a']), new Grant([Grant::ACTION_PUBLISH], ['b'])];
+
         $factory = $this->createMock(TokenFactoryInterface::class);
         $factory
             ->expects($this->once())
             ->method('create')
-            ->with(['a'], ['b'], ['iss' => 'https://example.com'])
+            ->with($this->equalTo($grants), ['iss' => 'https://example.com'])
         ;
 
-        $provider = new FactoryTokenProvider($factory, ['a'], ['b'], ['iss' => 'https://example.com']);
+        $provider = new FactoryTokenProvider($factory, $grants, ['iss' => 'https://example.com']);
         $provider->getJwt();
     }
 }

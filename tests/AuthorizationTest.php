@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
@@ -59,7 +60,10 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo(['foo']), $this->equalTo(['bar']), $this->arrayHasKey('x-foo'))
+            ->with(
+                $this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])]),
+                $this->arrayHasKey('x-foo')
+            )
         ;
 
         $registry = new HubRegistry(new MockHub(
@@ -86,7 +90,7 @@ class AuthorizationTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             static function (Update $u): string { return 'dummy'; },
             new class implements TokenFactoryInterface {
-                public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
+                public function create(array $grants = [], array $additionalClaims = []): string
                 {
                     return '';
                 }
@@ -173,7 +177,7 @@ class AuthorizationTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             static function (Update $u): string { return 'dummy'; },
             new class implements TokenFactoryInterface {
-                public function create(?array $subscribe = [], ?array $publish = [], array $additionalClaims = []): string
+                public function create(array $grants = [], array $additionalClaims = []): string
                 {
                     return '';
                 }
@@ -192,7 +196,7 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->isNull(), $this->isNull(), $this->arrayHasKey('x-foo'))
+            ->with($this->equalTo([]), $this->arrayHasKey('x-foo'))
         ;
 
         $registry = new HubRegistry(new MockHub(
