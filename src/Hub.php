@@ -34,8 +34,8 @@ final class Hub implements RemoteHubInterface
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         private readonly ?string $publicUrl = null,
         private ?HttpClientInterface $httpClient = null,
-        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
         ?string $cookieName = null,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
     ) {
         $this->httpClient = $httpClient ?? HttpClient::create();
         $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
