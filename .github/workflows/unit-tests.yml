@@ -17,14 +17,10 @@ jobs:
           - "lowest"
           - "highest"
         php-version:
-          - "8.1"
           - "8.2"
           - "8.3"
           - "8.4"
           - "8.5"
-        exclude:
-          # "web-token/jwt-library" (require-dev) needs PHP >=8.2
-          - php-version: "8.1"
 
     steps:
       - name: "checkout"

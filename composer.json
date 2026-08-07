@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "symfony/http-client": "^6.4|^7.3|^8.0",
         "symfony/http-foundation": "^6.4|^7.3|^8.0",
         "symfony/web-link": "^6.4|^7.3|^8.0",
@@ -51,7 +51,7 @@
     },
     "suggest": {
         "symfony/stopwatch": "Integration with the profiler performances",
-        "web-token/jwt-library": "To build Mercure protocol 1.0-compatible JSON Web Tokens with WebTokenFactory (requires PHP >=8.2)"
+        "web-token/jwt-library": "To build Mercure protocol 1.0-compatible JSON Web Tokens with WebTokenFactory"
     },
     "minimum-stability": "dev"
 }
