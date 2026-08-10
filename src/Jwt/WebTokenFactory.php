@@ -18,12 +18,17 @@ use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\EdDSA;
 use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\Algorithm\ES384;
 use Jose\Component\Signature\Algorithm\ES512;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\HS384;
 use Jose\Component\Signature\Algorithm\HS512;
+use Jose\Component\Signature\Algorithm\MacAlgorithm;
+use Jose\Component\Signature\Algorithm\PS256;
+use Jose\Component\Signature\Algorithm\PS384;
+use Jose\Component\Signature\Algorithm\PS512;
 use Jose\Component\Signature\Algorithm\RS256;
 use Jose\Component\Signature\Algorithm\RS384;
 use Jose\Component\Signature\Algorithm\RS512;
@@ -47,18 +52,26 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 final class WebTokenFactory implements TokenFactoryInterface
 {
     /**
+     * Algorithms {@see self::fromSecret()} and {@see self::fromJwksUri()} are allowed to instantiate,
+     * keyed by JWA name. An explicit allowlist rather than a namespace lookup, so that a configuration
+     * value can never reach "Jose\Component\Signature\Algorithm\None" and mint an unsigned token.
+     *
      * @var array<string, class-string<Algorithm>>
      */
     public const SIGN_ALGORITHMS = [
-        'hmac.sha256' => HS256::class,
-        'hmac.sha384' => HS384::class,
-        'hmac.sha512' => HS512::class,
-        'ecdsa.sha256' => ES256::class,
-        'ecdsa.sha384' => ES384::class,
-        'ecdsa.sha512' => ES512::class,
-        'rsa.sha256' => RS256::class,
-        'rsa.sha384' => RS384::class,
-        'rsa.sha512' => RS512::class,
+        'HS256' => HS256::class,
+        'HS384' => HS384::class,
+        'HS512' => HS512::class,
+        'ES256' => ES256::class,
+        'ES384' => ES384::class,
+        'ES512' => ES512::class,
+        'RS256' => RS256::class,
+        'RS384' => RS384::class,
+        'RS512' => RS512::class,
+        'PS256' => PS256::class,
+        'PS384' => PS384::class,
+        'PS512' => PS512::class,
+        'EdDSA' => EdDSA::class,
     ];
 
     private readonly string $algorithm;
@@ -77,12 +90,13 @@ final class WebTokenFactory implements TokenFactoryInterface
 
     /**
      * @param non-empty-string $secret
+     * @param string           $algorithm   A JWA signature algorithm name, written as-is to the "alg" header
      * @param int|null         $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
      */
-    public static function fromSecret(string $secret, string $algorithm = 'hmac.sha256', ?int $jwtLifetime = 0, string $passphrase = ''): self
+    public static function fromSecret(string $secret, string $algorithm = 'HS256', ?int $jwtLifetime = 0, string $passphrase = ''): self
     {
         $algorithmInstance = self::resolveAlgorithm($algorithm);
-        $jwk = str_starts_with($algorithm, 'hmac.')
+        $jwk = $algorithmInstance instanceof MacAlgorithm
             ? JWKFactory::createFromSecret($secret)
             : JWKFactory::createFromKey($secret, '' === $passphrase ? null : $passphrase);
 
@@ -103,10 +117,11 @@ final class WebTokenFactory implements TokenFactoryInterface
      * unconditionally instantiate Symfony\Component\Cache\Adapter\NullAdapter, a class from
      * "symfony/cache", a package the library never declares as a dependency.
      *
+     * @param string      $algorithm   See {@see self::fromSecret()}
      * @param string|null $keyId       Selects a specific key by its "kid" member; required when the key set holds more than one key matching $algorithm
      * @param int|null    $jwtLifetime See {@see self::fromSecret()}
      */
-    public static function fromJwksUri(string $jwksUri, ?HttpClientInterface $httpClient = null, string $algorithm = 'hmac.sha256', ?string $keyId = null, ?int $jwtLifetime = 0): self
+    public static function fromJwksUri(string $jwksUri, ?HttpClientInterface $httpClient = null, string $algorithm = 'HS256', ?string $keyId = null, ?int $jwtLifetime = 0): self
     {
         $algorithmInstance = self::resolveAlgorithm($algorithm);
 
