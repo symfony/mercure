@@ -246,6 +246,28 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
         );
     }
 
+    public function testPre08TopicListGrantsThrow()
+    {
+        $factory = new LcobucciFactory(self::SECRET, 'hmac.sha256', null);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('As of symfony/mercure 0.8, TokenFactoryInterface::create() takes a list of grants');
+
+        // @phpstan-ignore argument.type (intentionally exercises the pre-0.8 create($subscribe, $publish) convention)
+        $factory->create(['https://example.com/books/1'], ['*']);
+    }
+
+    public function testPre08IntegerKeyedAdditionalClaimsThrow()
+    {
+        $factory = new LcobucciFactory(self::SECRET, 'hmac.sha256', null);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('"$additionalClaims" must be indexed by claim name');
+
+        // intentionally exercises the pre-0.8 create($subscribe, $publish) convention
+        $factory->create([], ['*']);
+    }
+
     /**
      * @param array<int, string>|array<string, string[]>|null $subscribe
      * @param array<int, string>|array<string, string[]>|null $publish

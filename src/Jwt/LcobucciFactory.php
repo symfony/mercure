@@ -79,6 +79,8 @@ final class LcobucciFactory implements TokenFactoryInterface
 
     public function create(array $grants = [], array $additionalClaims = []): string
     {
+        JwtClaims::assertCreateArguments($grants, $additionalClaims);
+
         return ProtocolVersion::V1 === $this->protocolVersion
             ? $this->createV1($grants, $additionalClaims)
             : $this->createLegacy($grants, $additionalClaims);

@@ -40,6 +40,30 @@ final class JwtClaims
     }
 
     /**
+     * Rejects the pre-0.8 create($subscribe, $publish, $additionalClaims) calling convention,
+     * which PHP would otherwise accept silently (the extra third argument is ignored, and string
+     * "grants" only raise property-access warnings), minting a token with dropped grants, a bogus
+     * numeric claim, or a lost "exp".
+     *
+     * @param mixed[] $grants
+     * @param mixed[] $additionalClaims
+     */
+    public static function assertCreateArguments(array $grants, array $additionalClaims): void
+    {
+        foreach ($grants as $grant) {
+            if (!$grant instanceof Grant) {
+                throw new InvalidArgumentException(\sprintf('"$grants" must be a list of "%s" instances, "%s" given. As of symfony/mercure 0.8, TokenFactoryInterface::create() takes a list of grants instead of the former "$subscribe"/"$publish" topic lists.', Grant::class, get_debug_type($grant)));
+            }
+        }
+
+        foreach ($additionalClaims as $name => $value) {
+            if (!\is_string($name)) {
+                throw new InvalidArgumentException(\sprintf('"$additionalClaims" must be indexed by claim name, integer key %d given. As of symfony/mercure 0.8, TokenFactoryInterface::create() takes ($grants, $additionalClaims) instead of the former ($subscribe, $publish, $additionalClaims).', $name));
+            }
+        }
+    }
+
+    /**
      * @param Grant[]  $grants
      * @param mixed[]  $additionalClaims
      * @param int|null $jwtLifetime      already resolved via self::resolveLifetime(); "null" skips the automatic
