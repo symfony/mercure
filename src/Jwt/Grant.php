@@ -32,11 +32,11 @@ final class Grant
     public const ACTION_PUBLISH = 'publish';
 
     /**
-     * @param string[]                                         $actions one or more of self::ACTION_*
-     * @param array<int, string>|array<string, string[]>       $topics  a flat list of topics (matched as "exact"), or an
-     *                                                                   associative array mapping a matcher type name
-     *                                                                   ("exact", "urlpattern", or a registered extension
-     *                                                                   type) to a list of patterns of that type
+     * @param string[]                                   $actions one or more of self::ACTION_*
+     * @param array<int, string>|array<string, string[]> $topics  a flat list of topics (matched as "exact"), or an
+     *                                                            associative array mapping a matcher type name
+     *                                                            ("exact", "urlpattern", or a registered extension
+     *                                                            type) to a list of patterns of that type
      */
     public function __construct(
         public readonly array $actions,

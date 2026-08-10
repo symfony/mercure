@@ -40,12 +40,12 @@ final class JwtClaims
     }
 
     /**
-     * @param Grant[] $grants
-     * @param mixed[] $additionalClaims
-     * @param int|null $jwtLifetime already resolved via self::resolveLifetime(); "null" skips the automatic
-     *                               "exp" claim entirely (non-expiring token unless the caller sets "exp" in
-     *                               $additionalClaims itself), any other int sets "exp" to now + that many
-     *                               seconds when "exp" isn't already present
+     * @param Grant[]  $grants
+     * @param mixed[]  $additionalClaims
+     * @param int|null $jwtLifetime      already resolved via self::resolveLifetime(); "null" skips the automatic
+     *                                   "exp" claim entirely (non-expiring token unless the caller sets "exp" in
+     *                                   $additionalClaims itself), any other int sets "exp" to now + that many
+     *                                   seconds when "exp" isn't already present
      *
      * @return mixed[]
      */
