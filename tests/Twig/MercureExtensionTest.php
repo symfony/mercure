@@ -125,16 +125,20 @@ class MercureExtensionTest extends TestCase
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
-    /**
-     * @group legacy
-     */
-    public function testMercurePublishOptionIsDeprecated()
+    public function testMercurePublishOptionIsTranslatedToAGrant()
     {
+        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+        $tokenFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($this->equalTo([new Grant([Grant::ACTION_PUBLISH], ['https://foo/bar'])]), $this->anything())
+        ;
+
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
             static function (Update $u): string { return 'dummy'; },
-            $this->createMock(TokenFactoryInterface::class)
+            $tokenFactory
         ));
 
         $requestStack = new RequestStack();
@@ -143,6 +147,8 @@ class MercureExtensionTest extends TestCase
 
         $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
 
+        // "publish" stays a supported, non-deprecated option of this function: it must not be
+        // forwarded to Authorization::setCookie()'s deprecated $publish parameter
         $extension->mercure(null, ['publish' => ['https://foo/bar']]);
 
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);

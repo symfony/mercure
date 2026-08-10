@@ -95,11 +95,16 @@ final class MercureExtension extends AbstractExtension
         } elseif (isset($options['payload'])) {
             throw new InvalidArgumentException('A "payload" option requires a non-null "subscribe" option.');
         }
+        // translated to a Grant here, not forwarded to setCookie()'s deprecated $publish parameter:
+        // "publish" stays a supported option of this function
+        if (isset($options['publish'])) {
+            $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $options['publish']);
+        }
         if (isset($options['grants'])) {
             $grants = array_merge($grants, MatcherInput::normalizeGrants($options['grants']));
         }
 
-        $this->authorization->setCookie($request, $grants, $options['publish'] ?? null, $options['additionalClaims'] ?? [], $hub);
+        $this->authorization->setCookie($request, $grants, null, $options['additionalClaims'] ?? [], $hub);
 
         return $url;
     }
