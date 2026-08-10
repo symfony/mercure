@@ -74,24 +74,33 @@ final class WebTokenFactory implements TokenFactoryInterface
         'EdDSA' => EdDSA::class,
     ];
 
-    private readonly string $algorithm;
-    private readonly JWSBuilder $jwsBuilder;
     private readonly ?int $jwtLifetime;
 
-    private function __construct(
+    /**
+     * Takes an already configured JWSBuilder, so that the "jose.jws_builder.*" and "jose.key.*"
+     * services of "web-token/jwt-bundle" can be wired straight in.
+     *
+     * @param string   $algorithm   A JWA signature algorithm name, as listed by the builder's algorithm manager and written to the "alg" header
+     * @param int|null $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
+     */
+    public function __construct(
+        private readonly JWSBuilder $jwsBuilder,
         private readonly JWK $jwk,
-        Algorithm $algorithmInstance,
-        ?int $jwtLifetime,
+        private readonly string $algorithm = 'HS256',
+        ?int $jwtLifetime = 0,
     ) {
-        $this->algorithm = $algorithmInstance->name();
-        $this->jwsBuilder = new JWSBuilder(new AlgorithmManager([$algorithmInstance]));
+        $algorithmManager = $jwsBuilder->getSignatureAlgorithmManager();
+        if (!$algorithmManager->has($algorithm)) {
+            throw InvalidArgumentException::forInvalidAlgorithm($algorithm, $algorithmManager->list());
+        }
+
         $this->jwtLifetime = JwtClaims::resolveLifetime($jwtLifetime);
     }
 
     /**
      * @param non-empty-string $secret
-     * @param string           $algorithm   A JWA signature algorithm name, written as-is to the "alg" header
-     * @param int|null         $jwtLifetime If not null, an "exp" claim is always set to now + $jwtLifetime (in seconds), defaults to "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0.
+     * @param string           $algorithm   See {@see self::__construct()}
+     * @param int|null         $jwtLifetime See {@see self::__construct()}
      */
     public static function fromSecret(string $secret, string $algorithm = 'HS256', ?int $jwtLifetime = 0, string $passphrase = ''): self
     {
@@ -100,7 +109,7 @@ final class WebTokenFactory implements TokenFactoryInterface
             ? JWKFactory::createFromSecret($secret)
             : JWKFactory::createFromKey($secret, '' === $passphrase ? null : $passphrase);
 
-        return new self($jwk, $algorithmInstance, $jwtLifetime);
+        return new self(self::createJwsBuilder($algorithmInstance), $jwk, $algorithm, $jwtLifetime);
     }
 
     /**
@@ -117,9 +126,9 @@ final class WebTokenFactory implements TokenFactoryInterface
      * unconditionally instantiate Symfony\Component\Cache\Adapter\NullAdapter, a class from
      * "symfony/cache", a package the library never declares as a dependency.
      *
-     * @param string      $algorithm   See {@see self::fromSecret()}
+     * @param string      $algorithm   See {@see self::__construct()}
      * @param string|null $keyId       Selects a specific key by its "kid" member; required when the key set holds more than one key matching $algorithm
-     * @param int|null    $jwtLifetime See {@see self::fromSecret()}
+     * @param int|null    $jwtLifetime See {@see self::__construct()}
      */
     public static function fromJwksUri(string $jwksUri, ?HttpClientInterface $httpClient = null, string $algorithm = 'HS256', ?string $keyId = null, ?int $jwtLifetime = 0): self
     {
@@ -137,7 +146,7 @@ final class WebTokenFactory implements TokenFactoryInterface
             throw new InvalidArgumentException(\sprintf('No signing key matching algorithm "%s"%s was found in the JWK Set at "%s".', $algorithm, null !== $keyId ? \sprintf(' and key ID "%s"', $keyId) : '', $jwksUri));
         }
 
-        return new self($jwk, $algorithmInstance, $jwtLifetime);
+        return new self(self::createJwsBuilder($algorithmInstance), $jwk, $algorithm, $jwtLifetime);
     }
 
     public function create(array $grants = [], array $additionalClaims = []): string
@@ -173,5 +182,10 @@ final class WebTokenFactory implements TokenFactoryInterface
         $algorithmClass = self::SIGN_ALGORITHMS[$algorithm];
 
         return new $algorithmClass();
+    }
+
+    private static function createJwsBuilder(Algorithm $algorithm): JWSBuilder
+    {
+        return new JWSBuilder(new AlgorithmManager([$algorithm]));
     }
 }

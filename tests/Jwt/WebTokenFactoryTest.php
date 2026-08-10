@@ -13,7 +13,10 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure\Tests\Jwt;
 
+use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\HS256;
+use Jose\Component\Signature\Algorithm\HS384;
 use Jose\Component\Signature\JWSBuilder;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -178,6 +181,27 @@ MC4CAQAwBQYDK2VwBCIEIC2sHlY290BGA/Cr3ASUox+INF9KzT10bd96xOo5UPir
 
         $this->assertSame('EdDSA', $header['alg']);
         $this->assertSame(['subscribe'], $payload['authorization_details'][0]['actions']);
+    }
+
+    public function testAcceptsAPreconfiguredJwsBuilder()
+    {
+        $jwsBuilder = new JWSBuilder(new AlgorithmManager([new HS384(), new HS256()]));
+        $factory = new WebTokenFactory($jwsBuilder, JWKFactory::createFromSecret(self::SECRET), 'HS256');
+
+        [$header, $payload] = $this->decode($factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])], self::REQUIRED_CLAIMS));
+
+        $this->assertSame('HS256', $header['alg']);
+        $this->assertSame(['subscribe'], $payload['authorization_details'][0]['actions']);
+    }
+
+    public function testRejectsAnAlgorithmTheJwsBuilderDoesNotSupport()
+    {
+        $jwsBuilder = new JWSBuilder(new AlgorithmManager([new HS384()]));
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Unsupported algorithm "HS256", expected one of "HS384".');
+
+        new WebTokenFactory($jwsBuilder, JWKFactory::createFromSecret(self::SECRET), 'HS256');
     }
 
     public function testFromJwksUri()
