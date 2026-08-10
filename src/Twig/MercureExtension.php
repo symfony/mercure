@@ -87,7 +87,7 @@ final class MercureExtension extends AbstractExtension
             return $url;
         }
 
-        $this->authorization->setCookie($request, $options['subscribe'] ?? [], $options['publish'] ?? [], $options['additionalClaims'] ?? [], $hub, $options['payload'] ?? null);
+        $this->authorization->setCookie($request, $options['subscribe'] ?? [], $options['publish'] ?? [], $options['payload'] ?? null, $options['additionalClaims'] ?? [], $hub);
 
         return $url;
     }

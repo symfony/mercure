@@ -43,13 +43,13 @@ final class Authorization
      *
      * @param string[]|string|null $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
      * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
-     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
      */
-    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null, mixed $payload = null): void
+    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], mixed $payload = null, array $additionalClaims = [], ?string $hub = null): void
     {
-        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub, $payload));
+        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $payload, $additionalClaims, $hub));
     }
 
     /**
@@ -67,11 +67,11 @@ final class Authorization
      *
      * @param string[]|string|null $subscribe        a list of topics that the authorization cookie will allow subscribing to
      * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
+     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
      * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
      * @param string|null          $hub              the hub to generate the cookie for
-     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
      */
-    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null, mixed $payload = null): Cookie
+    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], mixed $payload = null, array $additionalClaims = [], ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
