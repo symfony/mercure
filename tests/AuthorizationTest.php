@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Authorization;
+use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\Grant;
@@ -332,5 +333,41 @@ class AuthorizationTest extends TestCase
         $cookie = $authorization->createCookie(Request::create('https://example.com'));
 
         $this->assertSame('__Secure-mercure_access_token', $cookie->getName());
+    }
+
+    public function testPrefixedCookieNameOnPlainHttpHubThrowsWithAHint()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'http://localhost/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class),
+            protocolVersion: ProtocolVersion::V1,
+        ));
+
+        $authorization = new Authorization($registry);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('configure a prefix-less cookie name on the hub for plain-HTTP development');
+
+        $authorization->createCookie(Request::create('http://localhost'));
+    }
+
+    public function testPrefixLessCookieNameOnPlainHttpHubWorks()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'http://localhost/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class),
+            cookieName: 'mercure_access_token',
+            protocolVersion: ProtocolVersion::V1,
+        ));
+
+        $authorization = new Authorization($registry);
+        $cookie = $authorization->createCookie(Request::create('http://localhost'));
+
+        $this->assertSame('mercure_access_token', $cookie->getName());
+        $this->assertFalse($cookie->isSecure());
     }
 }

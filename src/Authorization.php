@@ -122,7 +122,7 @@ final class Authorization
         $secure = 'http' !== strtolower($urlComponents['scheme'] ?? 'https');
 
         return Cookie::create(
-            $hubInstance->getCookieName(),
+            $this->getCookieName($hubInstance, $secure),
             $token,
             $cookieLifetime,
             $path,
@@ -150,7 +150,7 @@ final class Authorization
         $secure = 'http' !== strtolower($urlComponents['scheme'] ?? 'https');
 
         return Cookie::create(
-            $hubInstance->getCookieName(),
+            $this->getCookieName($hubInstance, $secure),
             null,
             1,
             $path,
@@ -160,6 +160,21 @@ final class Authorization
             false,
             $this->cookieSameSite
         );
+    }
+
+    /**
+     * A "__Secure-"/"__Host-" prefixed cookie is dropped by browsers when set over plain HTTP
+     * (and rejected outright by recent HttpFoundation versions); fail early with a hint instead,
+     * since protocol 1.0 hubs default to the prefixed "__Secure-mercure_access_token" name.
+     */
+    private function getCookieName(HubInterface $hubInstance, bool $secure): string
+    {
+        $cookieName = $hubInstance->getCookieName();
+        if (!$secure && (str_starts_with($cookieName, '__Secure-') || str_starts_with($cookieName, '__Host-'))) {
+            throw new InvalidArgumentException(\sprintf('The "%s" cookie name requires a hub public URL served over HTTPS; configure a prefix-less cookie name on the hub for plain-HTTP development.', $cookieName));
+        }
+
+        return $cookieName;
     }
 
     private function getCookieDomain(Request $request, array $urlComponents): ?string
