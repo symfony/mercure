@@ -39,7 +39,17 @@ final class MatcherInput
             return [];
         }
 
-        return array_is_list($topics) ? ['exact' => $topics] : $topics;
+        if (array_is_list($topics)) {
+            return ['exact' => $topics];
+        }
+
+        foreach (array_keys($topics) as $matcherType) {
+            if (!\is_string($matcherType)) {
+                throw new InvalidArgumentException(\sprintf('Topics must be either a flat list of exact topics or an associative array mapping matcher type names to pattern lists; mixed integer and string keys given (integer key %d).', $matcherType));
+            }
+        }
+
+        return $topics;
     }
 
     /**
@@ -54,16 +64,14 @@ final class MatcherInput
      */
     public static function flattenToExactOrFail(?array $topics): array
     {
-        if (null === $topics || [] === $topics || array_is_list($topics)) {
-            return $topics ?? [];
-        }
+        $normalized = self::normalize($topics);
 
-        $unsupported = array_diff(array_keys($topics), ['exact']);
+        $unsupported = array_diff(array_keys($normalized), ['exact']);
         if ([] !== $unsupported) {
             throw new InvalidArgumentException(\sprintf('Topic matcher type(s) "%s" require the Mercure protocol 1.0 (see Symfony\Component\Mercure\ProtocolVersion::V1); this factory only supports "exact" topic matching.', implode('", "', $unsupported)));
         }
 
-        return $topics['exact'] ?? [];
+        return $normalized['exact'] ?? [];
     }
 
     /**

@@ -42,6 +42,22 @@ final class MatcherInputTest extends TestCase
         $this->assertSame($input, MatcherInput::normalize($input));
     }
 
+    public function testNormalizeRejectsMixedIntegerAndStringKeys()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('mixed integer and string keys');
+
+        MatcherInput::normalize(['exact' => ['a'], 'b']);
+    }
+
+    public function testFlattenToExactOrFailRejectsMixedIntegerAndStringKeys()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('mixed integer and string keys');
+
+        MatcherInput::flattenToExactOrFail(['exact' => ['a'], 'b']);
+    }
+
     public function testFlattenToExactOrFailWithNull()
     {
         $this->assertSame([], MatcherInput::flattenToExactOrFail(null));
