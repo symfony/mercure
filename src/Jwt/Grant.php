@@ -24,9 +24,10 @@ namespace Symfony\Component\Mercure\Jwt;
 final class Grant
 {
     /*
-     * Not an enum: the hub explicitly ignores, rather than rejects, an action string it
-     * doesn't recognize, so issuers can use action types registered by future specifications
-     * without a library update — the same reason topic matcher types stay plain strings too.
+     * Not an enum: action types may be registered by future protocol revisions, and issuing
+     * tokens carrying them shouldn't require a library update — the same reason topic matcher
+     * types stay plain strings too. A hub rejects a token carrying an action or matcher type
+     * it doesn't support ("401 invalid_token"), so a typo here fails loudly, at the hub.
      */
     public const ACTION_SUBSCRIBE = 'subscribe';
     public const ACTION_PUBLISH = 'publish';
