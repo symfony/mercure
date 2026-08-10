@@ -127,6 +127,8 @@ final class WebTokenFactory implements TokenFactoryInterface
 
     public function create(array $grants = [], array $additionalClaims = []): string
     {
+        JwtClaims::assertCreateArguments($grants, $additionalClaims);
+
         $additionalClaims = JwtClaims::buildAuthorizationDetails($grants, $additionalClaims, $this->jwtLifetime);
 
         foreach (['exp', 'iat', 'nbf'] as $dateClaim) {
