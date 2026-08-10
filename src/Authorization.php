@@ -17,14 +17,13 @@ use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\Exception\RuntimeException;
+use Symfony\Component\Mercure\Jwt\Grant;
 
 /**
- * Manages the "mercureAuthorization" cookies.
+ * Manages the subscriber authorization cookie.
  */
 final class Authorization
 {
-    private const MERCURE_AUTHORIZATION_COOKIE_NAME = 'mercureAuthorization';
-
     private readonly int $cookieLifetime;
 
     /**
@@ -40,20 +39,26 @@ final class Authorization
     }
 
     /**
-     * Sets mercureAuthorization cookie for the given hub.
+     * Sets the subscriber authorization cookie for the given hub.
      *
-     * @param string[]|string|null $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
-     * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
-     * @param string|null          $hub              the hub to generate the cookie for
+     * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants           a
+     *                                                                                                                                                    list of Grant instances, or, as a shorthand, a bare topic, a flat topic
+     *                                                                                                                                                    list, a matcher-type map, or a list of Grant-shaped associative arrays
+     *                                                                                                                                                    (see MatcherInput::normalizeGrants()); "null" is deprecated, pass "[]"
+     *                                                                                                                                                    instead
+     * @param string[]|string|null                                                                                                      $publish          a list of topics that the authorization cookie will
+     *                                                                                                                                                    allow publishing to; deprecated, add a Grant with
+     *                                                                                                                                                    Grant::ACTION_PUBLISH to $grants instead
+     * @param array<string, mixed>                                                                                                      $additionalClaims an array of additional claims for the JWT
+     * @param string|null                                                                                                               $hub              the hub to generate the cookie for
      */
-    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null): void
+    public function setCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): void
     {
-        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $additionalClaims, $hub));
+        $this->updateCookies($request, $hub, $this->createCookie($request, $grants, $publish, $additionalClaims, $hub));
     }
 
     /**
-     * Clears the mercureAuthorization cookie for the given hub.
+     * Clears the subscriber authorization cookie for the given hub.
      *
      * @param string|null $hub the hub to clear the cookie for
      */
@@ -63,14 +68,20 @@ final class Authorization
     }
 
     /**
-     * Creates mercureAuthorization cookie for the given hub.
+     * Creates the subscriber authorization cookie for the given hub.
      *
-     * @param string[]|string|null $subscribe        a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
-     * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
-     * @param string|null          $hub              the hub to generate the cookie for
+     * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants           a
+     *                                                                                                                                                    list of Grant instances, or, as a shorthand, a bare topic, a flat topic
+     *                                                                                                                                                    list, a matcher-type map, or a list of Grant-shaped associative arrays
+     *                                                                                                                                                    (see MatcherInput::normalizeGrants()); "null" is deprecated, pass "[]"
+     *                                                                                                                                                    instead
+     * @param string[]|string|null                                                                                                      $publish          a list of topics that the authorization cookie will
+     *                                                                                                                                                    allow publishing to; deprecated, add a Grant with
+     *                                                                                                                                                    Grant::ACTION_PUBLISH to $grants instead
+     * @param array<string, mixed>                                                                                                      $additionalClaims an array of additional claims for the JWT
+     * @param string|null                                                                                                               $hub              the hub to generate the cookie for
      */
-    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], array $additionalClaims = [], ?string $hub = null): Cookie
+    public function createCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
@@ -88,14 +99,16 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        if (null !== $subscribe) {
-            $subscribe = (array) $subscribe;
+        if (null === $grants) {
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing "null" for argument "$grants" of "%s()" is deprecated, pass "[]" instead.', __METHOD__);
         }
+        $grants = MatcherInput::normalizeGrants($grants);
         if (null !== $publish) {
-            $publish = (array) $publish;
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing a non-null value for argument "$publish" of "%s()" is deprecated, add a Grant with Grant::ACTION_PUBLISH to "$grants" instead.', __METHOD__);
+            $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $publish);
         }
 
-        $token = $tokenFactory->create($subscribe, $publish, $additionalClaims);
+        $token = $tokenFactory->create($grants, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
         /** @var array $urlComponents */
         $urlComponents = parse_url($url);
@@ -104,13 +117,17 @@ final class Authorization
             $cookieLifetime = new \DateTimeImmutable("+{$cookieLifetime} seconds");
         }
 
+        $path = $urlComponents['path'] ?? '/';
+        $domain = $this->getCookieDomain($request, $urlComponents);
+        $secure = 'http' !== strtolower($urlComponents['scheme'] ?? 'https');
+
         return Cookie::create(
-            self::MERCURE_AUTHORIZATION_COOKIE_NAME,
+            $this->getCookieName($hubInstance, $secure),
             $token,
             $cookieLifetime,
-            $urlComponents['path'] ?? '/',
-            $this->getCookieDomain($request, $urlComponents),
-            'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
+            $path,
+            $domain,
+            $secure,
             true,
             false,
             $this->cookieSameSite
@@ -118,7 +135,7 @@ final class Authorization
     }
 
     /**
-     * Clears the mercureAuthorization cookie for the given hub.
+     * Clears the subscriber authorization cookie for the given hub.
      *
      * @param string|null $hub the hub to clear the cookie for
      */
@@ -128,17 +145,36 @@ final class Authorization
         /** @var array $urlComponents */
         $urlComponents = parse_url($hubInstance->getPublicUrl());
 
+        $path = $urlComponents['path'] ?? '/';
+        $domain = $this->getCookieDomain($request, $urlComponents);
+        $secure = 'http' !== strtolower($urlComponents['scheme'] ?? 'https');
+
         return Cookie::create(
-            self::MERCURE_AUTHORIZATION_COOKIE_NAME,
+            $this->getCookieName($hubInstance, $secure),
             null,
             1,
-            $urlComponents['path'] ?? '/',
-            $this->getCookieDomain($request, $urlComponents),
-            'http' !== strtolower($urlComponents['scheme'] ?? 'https'),
+            $path,
+            $domain,
+            $secure,
             true,
             false,
             $this->cookieSameSite
         );
+    }
+
+    /**
+     * A "__Secure-"/"__Host-" prefixed cookie is dropped by browsers when set over plain HTTP
+     * (and rejected outright by recent HttpFoundation versions); fail early with a hint instead,
+     * since protocol 1.0 hubs default to the prefixed "__Secure-mercure_access_token" name.
+     */
+    private function getCookieName(HubInterface $hubInstance, bool $secure): string
+    {
+        $cookieName = $hubInstance->getCookieName();
+        if (!$secure && (str_starts_with($cookieName, '__Secure-') || str_starts_with($cookieName, '__Host-'))) {
+            throw new InvalidArgumentException(\sprintf('The "%s" cookie name requires a hub public URL served over HTTPS; configure a prefix-less cookie name on the hub for plain-HTTP development.', $cookieName));
+        }
+
+        return $cookieName;
     }
 
     private function getCookieDomain(Request $request, array $urlComponents): ?string
@@ -175,7 +211,7 @@ final class Authorization
 
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (\array_key_exists($hub, $cookies)) {
-            $message = \sprintf('The "mercureAuthorization" cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
+            $message = \sprintf('The subscriber authorization cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
             throw new RuntimeException($message);
         }
 

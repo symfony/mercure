@@ -38,7 +38,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "0.6.x-dev"
+            "dev-main": "0.8.x-dev"
         },
         "thanks": {
             "name": "dunglas/mercure",

@@ -26,14 +26,19 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 final class Hub implements RemoteHubInterface
 {
+    private readonly string $cookieName;
+
     public function __construct(
         private readonly string $url,
         private readonly TokenProviderInterface $jwtProvider,
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         private readonly ?string $publicUrl = null,
         private ?HttpClientInterface $httpClient = null,
+        ?string $cookieName = null,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
     ) {
         $this->httpClient = $httpClient ?? HttpClient::create();
+        $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
     }
 
     public function getUrl(): string
@@ -54,6 +59,16 @@ final class Hub implements RemoteHubInterface
     public function getFactory(): ?TokenFactoryInterface
     {
         return $this->jwtFactory;
+    }
+
+    public function getProtocolVersion(): ProtocolVersion
+    {
+        return $this->protocolVersion;
+    }
+
+    public function getCookieName(): string
+    {
+        return $this->cookieName;
     }
 
     public function publish(Update $update): string

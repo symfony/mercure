@@ -15,3 +15,4 @@ parameters:
 				- tests/*
 		-
 			message: "#^Function mercure_publish not found\\.$#"
+			reportUnmatched: false

@@ -15,7 +15,11 @@ namespace Symfony\Component\Mercure\Twig;
 
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
+use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\Jwt\Grant;
+use Symfony\Component\Mercure\MatcherInput;
+use Symfony\Component\Mercure\ProtocolVersion;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
@@ -39,21 +43,31 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|null                                                                                                                       $topics  A topic or an array of topics to subscribe for. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
-     * @param array{subscribe?: string[]|string, publish?: string[]|string, additionalClaims?: array<string, mixed>, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
+     * @param string|string[]|array<string, string[]>|null                                                                                                                                                                                                                                                                                               $topics  A topic, an array of topics to subscribe for (matched as "exact"), or (Mercure protocol 1.0 hubs only) an associative array mapping a matcher type name ("exact", "urlpattern", or a registered extension type) to a list of patterns of that type. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     * @param array{grants?: Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string, subscribe?: string[]|string|array<string, string[]>, publish?: string[]|string|array<string, string[]>, additionalClaims?: array<string, mixed>, payload?: mixed, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
      *
-     * @return string The URL of the hub with the appropriate "topic" query parameters (if any)
+     * @return string The URL of the hub with the appropriate matcher query parameters (if any)
      */
     public function mercure(string|array|null $topics = null, array $options = []): string
     {
         $hub = $options['hub'] ?? null;
-        $url = $this->hubRegistry->getHub($hub)->getPublicUrl();
+        $hubInstance = $this->hubRegistry->getHub($hub);
+        $url = $hubInstance->getPublicUrl();
         if (null !== $topics) {
             // We cannot use http_build_query() because this method doesn't support generating multiple query parameters with the same name without the [] suffix
             $separator = '?';
-            foreach ((array) $topics as $topic) {
-                $url .= $separator.'topic='.rawurlencode($topic);
-                if ('?' === $separator) {
+            if (ProtocolVersion::V1 === $hubInstance->getProtocolVersion()) {
+                $normalized = MatcherInput::normalize(\is_string($topics) ? [$topics] : $topics);
+                foreach ($normalized as $matcherType => $patterns) {
+                    $paramName = 'exact' === $matcherType ? 'match' : 'match_'.rawurlencode($matcherType);
+                    foreach ($patterns as $pattern) {
+                        $url .= $separator.$paramName.'='.rawurlencode($pattern);
+                        $separator = '&';
+                    }
+                }
+            } else {
+                foreach (MatcherInput::flattenToExactOrFail(\is_string($topics) ? [$topics] : $topics) as $topic) {
+                    $url .= $separator.'topic='.rawurlencode($topic);
                     $separator = '&';
                 }
             }
@@ -68,14 +82,29 @@ final class MercureExtension extends AbstractExtension
         if (
             null === $this->authorization
             || null === $this->requestStack
-            || (!isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims']))
+            || (!isset($options['grants']) && !isset($options['subscribe']) && !isset($options['publish']) && !isset($options['additionalClaims']) && !isset($options['payload']))
             /* @phpstan-ignore-next-line */
             || null === $request = method_exists($this->requestStack, 'getMainRequest') ? $this->requestStack->getMainRequest() : $this->requestStack->getMasterRequest()
         ) {
             return $url;
         }
 
-        $this->authorization->setCookie($request, $options['subscribe'] ?? [], $options['publish'] ?? [], $options['additionalClaims'] ?? [], $hub);
+        $grants = [];
+        if (isset($options['subscribe'])) {
+            $grants[] = new Grant([Grant::ACTION_SUBSCRIBE], (array) $options['subscribe'], $options['payload'] ?? null);
+        } elseif (isset($options['payload'])) {
+            throw new InvalidArgumentException('A "payload" option requires a non-null "subscribe" option.');
+        }
+        // translated to a Grant here, not forwarded to setCookie()'s deprecated $publish parameter:
+        // "publish" stays a supported option of this function
+        if (isset($options['publish'])) {
+            $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $options['publish']);
+        }
+        if (isset($options['grants'])) {
+            $grants = array_merge($grants, MatcherInput::normalizeGrants($options['grants']));
+        }
+
+        $this->authorization->setCookie($request, $grants, null, $options['additionalClaims'] ?? [], $hub);
 
         return $url;
     }
