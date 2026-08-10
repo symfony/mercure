@@ -41,15 +41,19 @@ final class Authorization
     /**
      * Sets the subscriber authorization cookie for the given hub.
      *
-     * @param string[]|string|null $subscribe        a topic or a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
-     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
-     * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
-     * @param string|null          $hub              the hub to generate the cookie for
+     * @param Grant[]|string|array<int, string>|array<string, string[]>|null $grants           a list of Grant instances, or, as a shorthand for a
+     *                                                                                         single implicit "subscribe" grant, a topic, a flat
+     *                                                                                         topic list, or a matcher-type map (see Grant::$topics);
+     *                                                                                         "null" is deprecated, pass "[]" instead
+     * @param string[]|string|null                                           $publish          a list of topics that the authorization cookie will
+     *                                                                                         allow publishing to; deprecated, add a Grant with
+     *                                                                                         Grant::ACTION_PUBLISH to $grants instead
+     * @param array<string, mixed>                                           $additionalClaims an array of additional claims for the JWT
+     * @param string|null                                                    $hub              the hub to generate the cookie for
      */
-    public function setCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], mixed $payload = null, array $additionalClaims = [], ?string $hub = null): void
+    public function setCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): void
     {
-        $this->updateCookies($request, $hub, $this->createCookie($request, $subscribe, $publish, $payload, $additionalClaims, $hub));
+        $this->updateCookies($request, $hub, $this->createCookie($request, $grants, $publish, $additionalClaims, $hub));
     }
 
     /**
@@ -65,13 +69,17 @@ final class Authorization
     /**
      * Creates the subscriber authorization cookie for the given hub.
      *
-     * @param string[]|string|null $subscribe        a list of topics that the authorization cookie will allow subscribing to
-     * @param string[]|string|null $publish          a list of topics that the authorization cookie will allow publishing to
-     * @param mixed                $payload          data attached to the subscribe grant (Mercure protocol 1.0 hubs only); requires a non-null $subscribe
-     * @param array<string, mixed> $additionalClaims an array of additional claims for the JWT
-     * @param string|null          $hub              the hub to generate the cookie for
+     * @param Grant[]|string|array<int, string>|array<string, string[]>|null $grants           a list of Grant instances, or, as a shorthand for a
+     *                                                                                         single implicit "subscribe" grant, a topic, a flat
+     *                                                                                         topic list, or a matcher-type map (see Grant::$topics);
+     *                                                                                         "null" is deprecated, pass "[]" instead
+     * @param string[]|string|null                                           $publish          a list of topics that the authorization cookie will
+     *                                                                                         allow publishing to; deprecated, add a Grant with
+     *                                                                                         Grant::ACTION_PUBLISH to $grants instead
+     * @param array<string, mixed>                                           $additionalClaims an array of additional claims for the JWT
+     * @param string|null                                                    $hub              the hub to generate the cookie for
      */
-    public function createCookie(Request $request, string|array|null $subscribe = [], string|array|null $publish = [], mixed $payload = null, array $additionalClaims = [], ?string $hub = null): Cookie
+    public function createCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): Cookie
     {
         $hubInstance = $this->registry->getHub($hub);
         $tokenFactory = $hubInstance->getFactory();
@@ -89,13 +97,17 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        $grants = [];
-        if (null !== $subscribe) {
-            $grants[] = new Grant([Grant::ACTION_SUBSCRIBE], (array) $subscribe, $payload);
-        } elseif (null !== $payload) {
-            throw new InvalidArgumentException('A "payload" requires a non-null "$subscribe".');
+        if (null === $grants) {
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing "null" for argument "$grants" of "%s()" is deprecated, pass "[]" instead.', __METHOD__);
+            $grants = [];
+        }
+        if (\is_string($grants)) {
+            $grants = [new Grant([Grant::ACTION_SUBSCRIBE], [$grants])];
+        } elseif ([] !== $grants && !(reset($grants) instanceof Grant)) {
+            $grants = [new Grant([Grant::ACTION_SUBSCRIBE], $grants)];
         }
         if (null !== $publish) {
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing a non-null value for argument "$publish" of "%s()" is deprecated, add a Grant with Grant::ACTION_PUBLISH to "$grants" instead.', __METHOD__);
             $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $publish);
         }
 

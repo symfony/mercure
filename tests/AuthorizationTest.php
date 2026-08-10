@@ -54,6 +54,9 @@ class AuthorizationTest extends TestCase
         $this->assertIsNumeric($payload['exp']);
     }
 
+    /**
+     * @group legacy
+     */
     public function testSetCookie()
     {
         $tokenFactory = $this->createMock(TokenFactoryInterface::class);
@@ -81,6 +84,81 @@ class AuthorizationTest extends TestCase
         $this->assertNotNull($cookie->getValue());
         $this->assertSame(0, $cookie->getExpiresTime());
         $this->assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
+    }
+
+    public function testSetCookieWithPublishGrant()
+    {
+        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+        $tokenFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with(
+                $this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])]),
+                $this->arrayHasKey('x-foo')
+            )
+        ;
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $tokenFactory
+        ));
+
+        $request = Request::create('https://example.com');
+        $authorization = new Authorization($registry, 0, Cookie::SAMESITE_LAX);
+        $authorization->setCookie($request, [new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])], additionalClaims: ['x-foo' => 'bar']);
+
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[''];
+        $this->assertNotNull($cookie->getValue());
+        $this->assertSame(0, $cookie->getExpiresTime());
+        $this->assertSame(Cookie::SAMESITE_LAX, $cookie->getSameSite());
+    }
+
+    public function testSetCookieWithTopicShorthand()
+    {
+        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+        $tokenFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])]), $this->anything())
+        ;
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $tokenFactory
+        ));
+
+        $request = Request::create('https://example.com');
+        $authorization = new Authorization($registry);
+        $authorization->setCookie($request, ['foo']);
+
+        $this->assertNotNull($request->attributes->get('_mercure_authorization_cookies')['']->getValue());
+    }
+
+    public function testSetCookieWithStringShorthand()
+    {
+        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+        $tokenFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])]), $this->anything())
+        ;
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $tokenFactory
+        ));
+
+        $request = Request::create('https://example.com');
+        $authorization = new Authorization($registry);
+        $authorization->setCookie($request, 'foo');
+
+        $this->assertNotNull($request->attributes->get('_mercure_authorization_cookies')['']->getValue());
     }
 
     public function testClearCookie()
@@ -190,6 +268,9 @@ class AuthorizationTest extends TestCase
         $authorization->clearCookie($request);
     }
 
+    /**
+     * @group legacy
+     */
     public function testSetNullCookieTopics()
     {
         $tokenFactory = $this->createMock(TokenFactoryInterface::class);

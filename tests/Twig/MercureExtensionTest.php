@@ -77,6 +77,69 @@ class MercureExtensionTest extends TestCase
         $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Ffoo%2Fbar&lastEventID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f&Last-Event-ID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f', $url);
     }
 
+    public function testMercureWithGrantsOption()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class)
+        ));
+
+        $requestStack = new RequestStack();
+        $request = Request::create('https://example.com/');
+        $requestStack->push($request);
+
+        $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
+
+        $extension->mercure(null, ['grants' => ['https://foo/bar']]);
+
+        $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testMercurePublishOptionIsDeprecated()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class)
+        ));
+
+        $requestStack = new RequestStack();
+        $request = Request::create('https://example.com/');
+        $requestStack->push($request);
+
+        $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
+
+        $extension->mercure(null, ['publish' => ['https://foo/bar']]);
+
+        $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
+    }
+
+    public function testMercurePayloadWithoutSubscribeThrows()
+    {
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $this->createMock(TokenFactoryInterface::class)
+        ));
+
+        $requestStack = new RequestStack();
+        $requestStack->push(Request::create('https://example.com/'));
+
+        $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('A "payload" option requires a non-null "subscribe" option.');
+
+        $extension->mercure(null, ['payload' => 'foo']);
+    }
+
     public function testMercureV1FlatListIsExact()
     {
         $registry = new HubRegistry(new MockHub(
