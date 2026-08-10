@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure;
 
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
+use Symfony\Component\Mercure\Jwt\Grant;
 
 /**
  * Normalizes the two shapes accepted for a list of subscribe/publish topics:
@@ -63,5 +64,42 @@ final class MatcherInput
         }
 
         return $topics['exact'] ?? [];
+    }
+
+    /**
+     * Normalizes anything a $grants-shaped parameter accepts: a Grant[] list, a bare topic string, a flat topic
+     * list, a matcher-type map (one implicit "subscribe" grant each), or a list of Grant-shaped associative arrays
+     * (mirroring Grant's constructor — actions/topics/payload — for contexts that can't construct a Grant object
+     * directly, e.g. a Twig template).
+     *
+     * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants
+     *
+     * @return Grant[]
+     */
+    public static function normalizeGrants(array|string|null $grants): array
+    {
+        if (null === $grants || [] === $grants) {
+            return [];
+        }
+        if (\is_string($grants)) {
+            return [new Grant([Grant::ACTION_SUBSCRIBE], [$grants])];
+        }
+        if (!array_is_list($grants)) {
+            // a matcher-type map (e.g. ["urlpattern" => [...]]): the topics of one implicit "subscribe" grant
+            return [new Grant([Grant::ACTION_SUBSCRIBE], $grants)];
+        }
+
+        $first = reset($grants);
+        if ($first instanceof Grant) {
+            return $grants;
+        }
+        if (\is_string($first)) {
+            return [new Grant([Grant::ACTION_SUBSCRIBE], $grants)];
+        }
+
+        return array_map(
+            static fn (array $item) => new Grant($item['actions'] ?? [Grant::ACTION_SUBSCRIBE], $item['topics'] ?? [], $item['payload'] ?? null),
+            $grants
+        );
     }
 }

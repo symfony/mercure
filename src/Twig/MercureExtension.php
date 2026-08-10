@@ -43,8 +43,8 @@ final class MercureExtension extends AbstractExtension
     }
 
     /**
-     * @param string|string[]|array<string, string[]>|null                                                                                                                                                                                                                                    $topics  A topic, an array of topics to subscribe for (matched as "exact"), or (Mercure protocol 1.0 hubs only) an associative array mapping a matcher type name ("exact", "urlpattern", or a registered extension type) to a list of patterns of that type. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
-     * @param array{grants?: Grant[]|string|array<int, string>|array<string, string[]>, subscribe?: string[]|string|array<string, string[]>, publish?: string[]|string|array<string, string[]>, additionalClaims?: array<string, mixed>, payload?: mixed, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
+     * @param string|string[]|array<string, string[]>|null                                                                                                                                                                                                                                                                                               $topics  A topic, an array of topics to subscribe for (matched as "exact"), or (Mercure protocol 1.0 hubs only) an associative array mapping a matcher type name ("exact", "urlpattern", or a registered extension type) to a list of patterns of that type. If this parameter is omitted or `null` is passed, the URL of the hub will be returned (useful for publishing in JavaScript).
+     * @param array{grants?: Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string, subscribe?: string[]|string|array<string, string[]>, publish?: string[]|string|array<string, string[]>, additionalClaims?: array<string, mixed>, payload?: mixed, lastEventId?: string, hub?: string} $options The options to pass to the JWT factory
      *
      * @return string The URL of the hub with the appropriate matcher query parameters (if any)
      */
@@ -96,13 +96,7 @@ final class MercureExtension extends AbstractExtension
             throw new InvalidArgumentException('A "payload" option requires a non-null "subscribe" option.');
         }
         if (isset($options['grants'])) {
-            $extra = $options['grants'];
-            if (\is_string($extra)) {
-                $extra = [new Grant([Grant::ACTION_SUBSCRIBE], [$extra])];
-            } elseif ([] !== $extra && !(reset($extra) instanceof Grant)) {
-                $extra = [new Grant([Grant::ACTION_SUBSCRIBE], $extra)];
-            }
-            $grants = array_merge($grants, $extra);
+            $grants = array_merge($grants, MatcherInput::normalizeGrants($options['grants']));
         }
 
         $this->authorization->setCookie($request, $grants, $options['publish'] ?? null, $options['additionalClaims'] ?? [], $hub);

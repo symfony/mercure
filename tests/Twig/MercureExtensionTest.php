@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\HubRegistry;
+use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
@@ -93,6 +94,33 @@ class MercureExtensionTest extends TestCase
         $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
 
         $extension->mercure(null, ['grants' => ['https://foo/bar']]);
+
+        $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
+    }
+
+    public function testMercureWithGrantShapedArrayOption()
+    {
+        $tokenFactory = $this->createMock(TokenFactoryInterface::class);
+        $tokenFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], ['https://foo/bar'])]), $this->anything())
+        ;
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static function (Update $u): string { return 'dummy'; },
+            $tokenFactory
+        ));
+
+        $requestStack = new RequestStack();
+        $request = Request::create('https://example.com/');
+        $requestStack->push($request);
+
+        $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
+
+        $extension->mercure(null, ['grants' => [['actions' => [Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], 'topics' => ['https://foo/bar']]]]);
 
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }

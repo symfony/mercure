@@ -41,15 +41,16 @@ final class Authorization
     /**
      * Sets the subscriber authorization cookie for the given hub.
      *
-     * @param Grant[]|string|array<int, string>|array<string, string[]>|null $grants           a list of Grant instances, or, as a shorthand for a
-     *                                                                                         single implicit "subscribe" grant, a topic, a flat
-     *                                                                                         topic list, or a matcher-type map (see Grant::$topics);
-     *                                                                                         "null" is deprecated, pass "[]" instead
-     * @param string[]|string|null                                           $publish          a list of topics that the authorization cookie will
-     *                                                                                         allow publishing to; deprecated, add a Grant with
-     *                                                                                         Grant::ACTION_PUBLISH to $grants instead
-     * @param array<string, mixed>                                           $additionalClaims an array of additional claims for the JWT
-     * @param string|null                                                    $hub              the hub to generate the cookie for
+     * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants           a
+     *                                                                                                                                                    list of Grant instances, or, as a shorthand, a bare topic, a flat topic
+     *                                                                                                                                                    list, a matcher-type map, or a list of Grant-shaped associative arrays
+     *                                                                                                                                                    (see MatcherInput::normalizeGrants()); "null" is deprecated, pass "[]"
+     *                                                                                                                                                    instead
+     * @param string[]|string|null                                                                                                      $publish          a list of topics that the authorization cookie will
+     *                                                                                                                                                    allow publishing to; deprecated, add a Grant with
+     *                                                                                                                                                    Grant::ACTION_PUBLISH to $grants instead
+     * @param array<string, mixed>                                                                                                      $additionalClaims an array of additional claims for the JWT
+     * @param string|null                                                                                                               $hub              the hub to generate the cookie for
      */
     public function setCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): void
     {
@@ -69,15 +70,16 @@ final class Authorization
     /**
      * Creates the subscriber authorization cookie for the given hub.
      *
-     * @param Grant[]|string|array<int, string>|array<string, string[]>|null $grants           a list of Grant instances, or, as a shorthand for a
-     *                                                                                         single implicit "subscribe" grant, a topic, a flat
-     *                                                                                         topic list, or a matcher-type map (see Grant::$topics);
-     *                                                                                         "null" is deprecated, pass "[]" instead
-     * @param string[]|string|null                                           $publish          a list of topics that the authorization cookie will
-     *                                                                                         allow publishing to; deprecated, add a Grant with
-     *                                                                                         Grant::ACTION_PUBLISH to $grants instead
-     * @param array<string, mixed>                                           $additionalClaims an array of additional claims for the JWT
-     * @param string|null                                                    $hub              the hub to generate the cookie for
+     * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants           a
+     *                                                                                                                                                    list of Grant instances, or, as a shorthand, a bare topic, a flat topic
+     *                                                                                                                                                    list, a matcher-type map, or a list of Grant-shaped associative arrays
+     *                                                                                                                                                    (see MatcherInput::normalizeGrants()); "null" is deprecated, pass "[]"
+     *                                                                                                                                                    instead
+     * @param string[]|string|null                                                                                                      $publish          a list of topics that the authorization cookie will
+     *                                                                                                                                                    allow publishing to; deprecated, add a Grant with
+     *                                                                                                                                                    Grant::ACTION_PUBLISH to $grants instead
+     * @param array<string, mixed>                                                                                                      $additionalClaims an array of additional claims for the JWT
+     * @param string|null                                                                                                               $hub              the hub to generate the cookie for
      */
     public function createCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): Cookie
     {
@@ -99,13 +101,8 @@ final class Authorization
 
         if (null === $grants) {
             trigger_deprecation('symfony/mercure', '0.8', 'Passing "null" for argument "$grants" of "%s()" is deprecated, pass "[]" instead.', __METHOD__);
-            $grants = [];
         }
-        if (\is_string($grants)) {
-            $grants = [new Grant([Grant::ACTION_SUBSCRIBE], [$grants])];
-        } elseif ([] !== $grants && !(reset($grants) instanceof Grant)) {
-            $grants = [new Grant([Grant::ACTION_SUBSCRIBE], $grants)];
-        }
+        $grants = MatcherInput::normalizeGrants($grants);
         if (null !== $publish) {
             trigger_deprecation('symfony/mercure', '0.8', 'Passing a non-null value for argument "$publish" of "%s()" is deprecated, add a Grant with Grant::ACTION_PUBLISH to "$grants" instead.', __METHOD__);
             $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $publish);
