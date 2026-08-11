@@ -16,7 +16,7 @@
         }
     ],
     "require": {
-        "php": ">=8.1",
+        "php": ">=8.2",
         "symfony/http-client": "^6.4|^7.3|^8.0",
         "symfony/http-foundation": "^6.4|^7.3|^8.0",
         "symfony/web-link": "^6.4|^7.3|^8.0",
@@ -28,7 +28,8 @@
         "symfony/http-kernel": "^6.4|^7.3|^8.0",
         "symfony/phpunit-bridge": "^7.3.4|^8.0",
         "symfony/stopwatch": "^6.4|^7.3|^8.0",
-        "twig/twig": "^2.0|^3.0|^4.0"
+        "twig/twig": "^2.0|^3.0|^4.0",
+        "web-token/jwt-library": "^4.1"
     },
     "autoload": {
         "psr-4": { "Symfony\\Component\\Mercure\\": "src/" }
@@ -49,7 +50,8 @@
         "sort-packages": true
     },
     "suggest": {
-        "symfony/stopwatch": "Integration with the profiler performances"
+        "symfony/stopwatch": "Integration with the profiler performances",
+        "web-token/jwt-library": "To build Mercure protocol 1.0-compatible JSON Web Tokens with WebTokenFactory"
     },
     "minimum-stability": "dev"
 }
