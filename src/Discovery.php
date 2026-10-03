@@ -18,7 +18,7 @@ use Symfony\Component\WebLink\GenericLinkProvider;
 use Symfony\Component\WebLink\Link;
 
 /**
- * Discovery service is a helper to add `Link` header to the response.
+ * Adds the Link header that advertises the Mercure hub to clients.
  */
 final class Discovery
 {

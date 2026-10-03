@@ -16,6 +16,8 @@ namespace Symfony\Component\Mercure;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 
 /**
+ * Publishes updates to a Mercure hub.
+ *
  * @author Saif Eddin Gmati <azjezz@protonmail.com>
  *
  * @experimental

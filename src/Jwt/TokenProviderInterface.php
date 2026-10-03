@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Jwt;
 
 /**
+ * Provides the JWT used to publish updates to a hub.
+ *
  * @author Saif Eddin Gmati <azjezz@protonmail.com>
  *
  * @experimental
