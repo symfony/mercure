@@ -18,6 +18,7 @@ use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\Ed25519;
 use Jose\Component\Signature\Algorithm\EdDSA;
 use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\Algorithm\ES384;
@@ -55,6 +56,7 @@ final class WebTokenFactory implements TokenFactoryInterface
      * Algorithms {@see self::fromSecret()} and {@see self::fromJwksUri()} are allowed to instantiate,
      * keyed by JWA name. An explicit allowlist rather than a namespace lookup, so that a configuration
      * value can never reach "Jose\Component\Signature\Algorithm\None" and mint an unsigned token.
+     * "Ed25519" requires "web-token/jwt-library" 4.3 or later.
      *
      * @var array<string, class-string<Algorithm>>
      */
@@ -72,6 +74,7 @@ final class WebTokenFactory implements TokenFactoryInterface
         'PS384' => PS384::class,
         'PS512' => PS512::class,
         'EdDSA' => EdDSA::class,
+        'Ed25519' => Ed25519::class,
     ];
 
     private readonly ?int $jwtLifetime;
@@ -105,9 +108,14 @@ final class WebTokenFactory implements TokenFactoryInterface
     public static function fromSecret(string $secret, string $algorithm = 'HS256', ?int $jwtLifetime = 0, string $passphrase = ''): self
     {
         $algorithmInstance = self::resolveAlgorithm($algorithm);
-        $jwk = $algorithmInstance instanceof MacAlgorithm
-            ? JWKFactory::createFromSecret($secret)
-            : JWKFactory::createFromKey($secret, '' === $passphrase ? null : $passphrase);
+        $password = '' === $passphrase ? null : $passphrase;
+        // web-token 4.3 deprecates the static JWKFactory methods in favor of instance ones
+        if (method_exists(JWKFactory::class, 'fromSecret')) { // @phpstan-ignore function.alreadyNarrowedType (false before web-token 4.3)
+            $jwkFactory = new JWKFactory();
+            $jwk = $algorithmInstance instanceof MacAlgorithm ? $jwkFactory->fromSecret($secret) : $jwkFactory->fromKey($secret, $password);
+        } else {
+            $jwk = $algorithmInstance instanceof MacAlgorithm ? JWKFactory::createFromSecret($secret) : JWKFactory::createFromKey($secret, $password);
+        }
 
         return new self(self::createJwsBuilder($algorithmInstance), $jwk, $algorithm, $jwtLifetime);
     }
@@ -161,7 +169,7 @@ final class WebTokenFactory implements TokenFactoryInterface
             }
         }
 
-        $jws = $this->jwsBuilder->create()
+        $jws = $this->jwsBuilder
             ->withPayload(json_encode($additionalClaims, \JSON_THROW_ON_ERROR))
             ->addSignature($this->jwk, ['alg' => $this->algorithm, 'typ' => 'at+jwt'])
             ->build();
@@ -180,6 +188,9 @@ final class WebTokenFactory implements TokenFactoryInterface
         }
 
         $algorithmClass = self::SIGN_ALGORITHMS[$algorithm];
+        if (!class_exists($algorithmClass)) {
+            throw new \LogicException(\sprintf('The "%s" algorithm is not supported by the installed version of "web-token/jwt-library". Try running "composer update web-token/jwt-library".', $algorithm));
+        }
 
         return new $algorithmClass();
     }
