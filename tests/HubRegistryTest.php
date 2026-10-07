@@ -19,12 +19,12 @@ use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\MockHub;
 
-class HubRegistryTest extends TestCase
+final class HubRegistryTest extends TestCase
 {
     public function testGetHubByName()
     {
-        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
-        $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static function (): string { return 'bar'; });
+        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static fn (): string => 'foo');
+        $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static fn (): string => 'bar');
         $registry = new HubRegistry($fooHub, ['foo' => $fooHub, 'bar' => $barHub]);
 
         $this->assertSame($fooHub, $registry->getHub('foo'));
@@ -32,8 +32,8 @@ class HubRegistryTest extends TestCase
 
     public function testGetDefaultHub()
     {
-        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
-        $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static function (): string { return 'bar'; });
+        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static fn (): string => 'foo');
+        $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static fn (): string => 'bar');
         $registry = new HubRegistry($fooHub, ['foo' => $fooHub, 'bar' => $barHub]);
 
         $this->assertSame($fooHub, $registry->getHub());
@@ -41,7 +41,7 @@ class HubRegistryTest extends TestCase
 
     public function testGetMissingHubThrows()
     {
-        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
+        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static fn (): string => 'foo');
         $registry = new HubRegistry($fooHub, ['foo' => $fooHub]);
 
         $this->expectException(InvalidArgumentException::class);
@@ -50,8 +50,8 @@ class HubRegistryTest extends TestCase
 
     public function testGetAllHubs()
     {
-        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static function (): string { return 'foo'; });
-        $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static function (): string { return 'bar'; });
+        $fooHub = new MockHub('fooUrl', new StaticTokenProvider('fooToken'), static fn (): string => 'foo');
+        $barHub = new MockHub('barUrl', new StaticTokenProvider('barToken'), static fn (): string => 'bar');
         $registry = new HubRegistry($fooHub, ['foo' => $fooHub, 'bar' => $barHub]);
 
         $this->assertSame(['foo' => $fooHub, 'bar' => $barHub], $registry->all());

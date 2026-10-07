@@ -19,12 +19,12 @@ use Symfony\Component\Mercure\Update;
 /**
  * @author Kévin Dunglas <dunglas@gmail.com>
  */
-class UpdateTest extends TestCase
+final class UpdateTest extends TestCase
 {
     /**
      * @dataProvider updateProvider
      */
-    public function testCreateUpdate($topics, $data, bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null)
+    public function testCreateUpdate(string|array $topics, string $data, bool $private = false, ?string $id = null, ?string $type = null, ?int $retry = null)
     {
         $update = new Update($topics, $data, $private, $id, $type, $retry);
         $this->assertSame((array) $topics, $update->getTopics());
@@ -35,11 +35,9 @@ class UpdateTest extends TestCase
         $this->assertSame($retry, $update->getRetry());
     }
 
-    public function updateProvider(): array
+    public function updateProvider(): \Iterator
     {
-        return [
-            ['http://example.com/foo', 'payload', true, 'id', 'type', 1936],
-            [['https://mercure.rocks', 'https://github.com/dunglas/mercure'], 'payload'],
-        ];
+        yield ['http://example.com/foo', 'payload', true, 'id', 'type', 1936];
+        yield [['https://mercure.rocks', 'https://github.com/dunglas/mercure'], 'payload'];
     }
 }

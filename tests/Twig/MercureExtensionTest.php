@@ -31,14 +31,14 @@ use Symfony\Component\Mercure\Update;
 /**
  * @author Kévin Dunglas <kevin@dunglas.fr>
  */
-class MercureExtensionTest extends TestCase
+final class MercureExtensionTest extends TestCase
 {
     public function testMercure()
     {
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -59,9 +59,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string {
-                return 'dummy';
-            },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -83,7 +81,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -104,13 +102,13 @@ class MercureExtensionTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], ['https://foo/bar'])]), $this->anything())
+            ->with([new Grant([Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], ['https://foo/bar'])], $this->anything())
         ;
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -131,13 +129,13 @@ class MercureExtensionTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo([new Grant([Grant::ACTION_PUBLISH], ['https://foo/bar'])]), $this->anything())
+            ->with([new Grant([Grant::ACTION_PUBLISH], ['https://foo/bar'])], $this->anything())
         ;
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -159,7 +157,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class)
         ));
 
@@ -179,7 +177,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::V1,
         ));
@@ -196,7 +194,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::V1,
         ));
@@ -216,7 +214,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::V1,
         ));
@@ -233,7 +231,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::Legacy,
         ));
@@ -251,7 +249,7 @@ class MercureExtensionTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::Legacy,
         ));

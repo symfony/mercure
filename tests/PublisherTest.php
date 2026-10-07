@@ -27,7 +27,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
  *
  * @group legacy
  */
-class PublisherTest extends TestCase
+final class PublisherTest extends TestCase
 {
     public const URL = 'https://demo.mercure.rocks/.well-known/mercure';
     public const JWT = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJtZXJjdXJlIjp7InN1YnNjcmliZSI6WyIqIl0sInB1Ymxpc2giOlsiKiJdfX0.M1yJUov4a6oLrigTqBZQO_ohWUsg3Uz1bnLD4MIyWLo';

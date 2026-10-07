@@ -44,8 +44,8 @@ final class LcobucciFactory implements TokenFactoryInterface
         'rsa.sha512' => Signer\Rsa\Sha512::class,
     ];
 
-    private Configuration $configurations;
-    private ?int $jwtLifetime;
+    private readonly Configuration $configurations;
+    private readonly ?int $jwtLifetime;
 
     /**
      * @param non-empty-string $secret

@@ -26,7 +26,7 @@ use Symfony\Component\Mercure\EventSubscriber\SetCookieSubscriber;
 /**
  * @author Kévin Dunglas <kevin@dunglas.fr>
  */
-class SetCookieSubscriberTest extends TestCase
+final class SetCookieSubscriberTest extends TestCase
 {
     public function testOnKernelResponse()
     {

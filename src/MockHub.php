@@ -18,10 +18,7 @@ use Symfony\Component\Mercure\Jwt\TokenProviderInterface;
 
 final class MockHub implements HubInterface
 {
-    /**
-     * @var callable
-     */
-    private $publisher;
+    private readonly \Closure $publisher;
 
     private readonly string $cookieName;
 
@@ -37,7 +34,7 @@ final class MockHub implements HubInterface
         ?string $cookieName = null,
         private readonly ProtocolVersion $protocolVersion = ProtocolVersion::V1,
     ) {
-        $this->publisher = $publisher;
+        $this->publisher = $publisher(...);
         $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
     }
 

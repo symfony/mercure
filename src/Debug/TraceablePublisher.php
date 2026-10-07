@@ -34,17 +34,17 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
     private array $messages = [];
 
     public function __construct(
-        private PublisherInterface $publisher,
-        private Stopwatch $stopwatch,
+        private readonly PublisherInterface $publisher,
+        private readonly Stopwatch $stopwatch,
     ) {
     }
 
     public function __invoke(Update $update): string
     {
-        $this->stopwatch->start(__CLASS__);
+        $this->stopwatch->start(self::class);
         $content = ($this->publisher)($update);
 
-        $e = $this->stopwatch->stop(__CLASS__);
+        $e = $this->stopwatch->stop(self::class);
         $this->messages[] = [
             'object' => $update,
             'duration' => $e->getDuration(),
@@ -71,13 +71,11 @@ final class TraceablePublisher implements PublisherInterface, ResetInterface
 
     public function getDuration(): float
     {
-        return array_sum(array_map(function ($a) {
-            return $a['duration'];
-        }, $this->messages));
+        return array_sum(array_map(static fn (array $a) => $a['duration'], $this->messages));
     }
 
     public function getMemory(): int
     {
-        return (int) array_sum(array_map(static fn ($a) => $a['memory'], $this->messages));
+        return (int) array_sum(array_map(static fn (array $a) => $a['memory'], $this->messages));
     }
 }

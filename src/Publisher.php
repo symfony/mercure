@@ -31,17 +31,15 @@ trigger_deprecation('symfony/mercure', '0.5', 'Class "%s" is deprecated, use "%s
  */
 final class Publisher implements PublisherInterface
 {
-    private $hubUrl;
-    private $jwtProvider;
-    private $httpClient;
+    private readonly TokenProviderInterface|\Closure $jwtProvider;
+    private readonly HttpClientInterface $httpClient;
 
     /**
      * @param TokenProviderInterface|callable(Update $update):string $jwtProvider
      */
-    public function __construct(string $hubUrl, $jwtProvider, ?HttpClientInterface $httpClient = null)
+    public function __construct(private readonly string $hubUrl, TokenProviderInterface|callable $jwtProvider, ?HttpClientInterface $httpClient = null)
     {
-        $this->hubUrl = $hubUrl;
-        $this->jwtProvider = $jwtProvider;
+        $this->jwtProvider = $jwtProvider instanceof TokenProviderInterface ? $jwtProvider : $jwtProvider(...);
         $this->httpClient = $httpClient ?? HttpClient::create();
     }
 

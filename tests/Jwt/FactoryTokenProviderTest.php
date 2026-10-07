@@ -46,7 +46,7 @@ final class FactoryTokenProviderTest extends TestCase
         $factory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo($grants), ['iss' => 'https://example.com'])
+            ->with($grants, ['iss' => 'https://example.com'])
         ;
 
         $provider = new FactoryTokenProvider($factory, $grants, ['iss' => 'https://example.com']);

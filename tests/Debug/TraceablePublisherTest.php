@@ -46,7 +46,7 @@ final class TraceablePublisherTest extends TestCase
         );
         $traceablePublisher($update);
 
-        $this->assertEquals(1, $traceablePublisher->count());
+        $this->assertSame(1, $traceablePublisher->count());
         $this->assertSame($update, $traceablePublisher->getMessages()[0]['object']);
     }
 }

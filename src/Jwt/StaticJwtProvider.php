@@ -26,11 +26,8 @@ trigger_deprecation('symfony/mercure', '0.5', 'Class "%s" is deprecated, use "%s
  */
 final class StaticJwtProvider
 {
-    private $jwt;
-
-    public function __construct(string $jwt)
+    public function __construct(private readonly string $jwt)
     {
-        $this->jwt = $jwt;
     }
 
     public function __invoke(): string

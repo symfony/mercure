@@ -32,7 +32,7 @@ use Symfony\Component\Mercure\Update;
 /**
  * @author Kévin Dunglas <kevin@dunglas.fr>
  */
-class AuthorizationTest extends TestCase
+final class AuthorizationTest extends TestCase
 {
     public function testJwtLifetime()
     {
@@ -43,7 +43,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::Legacy)
         ));
 
@@ -65,7 +65,7 @@ class AuthorizationTest extends TestCase
             ->expects($this->once())
             ->method('create')
             ->with(
-                $this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])]),
+                [new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])],
                 $this->arrayHasKey('x-foo')
             )
         ;
@@ -73,7 +73,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -94,7 +94,7 @@ class AuthorizationTest extends TestCase
             ->expects($this->once())
             ->method('create')
             ->with(
-                $this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])]),
+                [new Grant([Grant::ACTION_SUBSCRIBE], ['foo']), new Grant([Grant::ACTION_PUBLISH], ['bar'])],
                 $this->arrayHasKey('x-foo')
             )
         ;
@@ -102,7 +102,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -122,13 +122,13 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])]), $this->anything())
+            ->with([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])], $this->anything())
         ;
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -145,13 +145,13 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])]), $this->anything())
+            ->with([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])], $this->anything())
         ;
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -168,13 +168,13 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo([new Grant([Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], ['foo'], 'x')]), $this->anything())
+            ->with([new Grant([Grant::ACTION_SUBSCRIBE, Grant::ACTION_PUBLISH], ['foo'], 'x')], $this->anything())
         ;
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -190,7 +190,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             new class implements TokenFactoryInterface {
                 public function create(array $grants = [], array $additionalClaims = []): string
                 {
@@ -220,7 +220,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::Legacy)
         ));
 
@@ -252,7 +252,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             $hubUrl,
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::Legacy)
         ));
 
@@ -277,7 +277,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             new class implements TokenFactoryInterface {
                 public function create(array $grants = [], array $additionalClaims = []): string
                 {
@@ -301,13 +301,13 @@ class AuthorizationTest extends TestCase
         $tokenFactory
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo([]), $this->arrayHasKey('x-foo'))
+            ->with([], $this->arrayHasKey('x-foo'))
         ;
 
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $tokenFactory
         ));
 
@@ -324,7 +324,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'https://example.com/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::V1,
         ));
@@ -340,7 +340,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'http://localhost/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             protocolVersion: ProtocolVersion::V1,
         ));
@@ -358,7 +358,7 @@ class AuthorizationTest extends TestCase
         $registry = new HubRegistry(new MockHub(
             'http://localhost/.well-known/mercure',
             new StaticTokenProvider('foo.bar.baz'),
-            static function (Update $u): string { return 'dummy'; },
+            static fn (Update $u): string => 'dummy',
             $this->createMock(TokenFactoryInterface::class),
             cookieName: 'mercure_access_token',
             protocolVersion: ProtocolVersion::V1,
