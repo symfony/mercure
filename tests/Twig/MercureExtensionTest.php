@@ -50,7 +50,7 @@ class MercureExtensionTest extends TestCase
 
         $url = $extension->mercure(['https://foo/bar'], ['subscribe' => ['https://foo/{id}']]);
 
-        $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Ffoo%2Fbar', $url);
+        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar', $url);
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
     }
 
@@ -75,7 +75,7 @@ class MercureExtensionTest extends TestCase
             'lastEventId' => 'urn:uuid:13697bc5-e3c6-48cf-99c8-9d64c26f1a2f',
         ]);
 
-        $this->assertSame('https://example.com/.well-known/mercure?topic=https%3A%2F%2Ffoo%2Fbar&lastEventID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f&Last-Event-ID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f', $url);
+        $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar&lastEventID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f&Last-Event-ID=urn%3Auuid%3A13697bc5-e3c6-48cf-99c8-9d64c26f1a2f', $url);
     }
 
     public function testMercureWithGrantsOption()
@@ -235,6 +235,7 @@ class MercureExtensionTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             static function (Update $u): string { return 'dummy'; },
             $this->createMock(TokenFactoryInterface::class),
+            protocolVersion: ProtocolVersion::Legacy,
         ));
 
         $extension = new MercureExtension($registry);
@@ -252,6 +253,7 @@ class MercureExtensionTest extends TestCase
             new StaticTokenProvider('foo.bar.baz'),
             static function (Update $u): string { return 'dummy'; },
             $this->createMock(TokenFactoryInterface::class),
+            protocolVersion: ProtocolVersion::Legacy,
         ));
 
         $extension = new MercureExtension($registry);

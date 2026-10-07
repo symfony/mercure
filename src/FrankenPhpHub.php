@@ -28,7 +28,7 @@ final class FrankenPhpHub implements HubInterface
         private readonly string $publicUrl,
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         ?string $cookieName = null,
-        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::V1,
     ) {
         $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
     }

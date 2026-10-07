@@ -19,6 +19,7 @@ use Symfony\Component\Mercure\Jwt\FactoryTokenProvider;
 use Symfony\Component\Mercure\Jwt\Grant;
 use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
+use Symfony\Component\Mercure\ProtocolVersion;
 
 final class FactoryTokenProviderTest extends TestCase
 {
@@ -28,7 +29,7 @@ final class FactoryTokenProviderTest extends TestCase
             $this->markTestSkipped('requires lcobucci/jwt.');
         }
 
-        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null, protocolVersion: ProtocolVersion::Legacy);
         $provider = new FactoryTokenProvider($factory, [new Grant([Grant::ACTION_PUBLISH], ['*']), new Grant([Grant::ACTION_SUBSCRIBE], [])]);
 
         $this->assertSame(

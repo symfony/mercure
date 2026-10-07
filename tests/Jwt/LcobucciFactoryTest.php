@@ -80,7 +80,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
     public function testCreate(string $secret, string $algorithm, ?array $subscribe, ?array $publish, array $additionalClaims, string $expectedJwt)
     {
         \assert('' !== $secret);
-        $factory = new LcobucciFactory($secret, $algorithm, null);
+        $factory = new LcobucciFactory($secret, $algorithm, null, protocolVersion: ProtocolVersion::Legacy);
 
         $this->assertSame(
             $expectedJwt,
@@ -90,14 +90,14 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
     public function testCreateWithEcdsaAlgorithm()
     {
-        $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null);
+        $factory = new LcobucciFactory(self::PRIVATE_ECDSA_KEY, 'ecdsa.sha256', null, protocolVersion: ProtocolVersion::Legacy);
 
         $this->assertStringStartsWith('eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9', $factory->create($this->grants([], ['*'])));
     }
 
     public function testCreateWithEncryptedRSAAlgorithm()
     {
-        $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing');
+        $factory = new LcobucciFactory(self::PRIVATE_RSA_ENCRYPTED_KEY, 'rsa.sha512', null, 'testing', ProtocolVersion::Legacy);
 
         $this->assertSame(
             'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzUxMiJ9.eyJtZXJjdXJlIjp7InB1Ymxpc2giOlsiKiJdLCJzdWJzY3JpYmUiOltdfX0.AHKMv2PQOGq5M8VhEM1Snf7QMHoTEyeuY0-L7GjRGkaygb3TyRWFO__uvIkStj1shOykO293tqGd_pijtRrbvul4ZdOQKYBjOxk7tNsQ_gQgepptneYr4eL8F9r2_KgUVrb-xcl0YzobH389OKBhuJ8HRQ-gADniBqbSuURwFyKXcEXz-GiZ_y9hTJ4tQ4bY28SlER_-LpjRCadUik4SqXLt--8VIoJ7zHvxCSOMIHFbLZ1CFaycMuXly1w7W8XKCfpshCobbi5Xt2QndAhTgpfvmnx1mn7e1ng9QDYzNHqNb6iZzxSbZ8bnttCwVv7uuBU2tEDxBXQB-TeVSD71pw',
@@ -115,7 +115,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
     public function testPureExactMatcherArrayIsEquivalentToFlatList()
     {
-        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null, protocolVersion: ProtocolVersion::Legacy);
 
         $this->assertSame(
             $factory->create($this->grants([], ['exact' => ['*']])),
@@ -125,7 +125,7 @@ TZCHmg89ySLBfCAspVeo63o/R7bs9a7BP9x2h5uwCBogSvkEwhhPKnboVN45bp9c
 
     public function testNonExactMatcherTypeThrows()
     {
-        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null);
+        $factory = new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', null, protocolVersion: ProtocolVersion::Legacy);
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Topic matcher type(s) "urlpattern" require the Mercure protocol 1.0');
