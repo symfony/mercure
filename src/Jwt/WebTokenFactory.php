@@ -105,9 +105,14 @@ final class WebTokenFactory implements TokenFactoryInterface
     public static function fromSecret(string $secret, string $algorithm = 'HS256', ?int $jwtLifetime = 0, string $passphrase = ''): self
     {
         $algorithmInstance = self::resolveAlgorithm($algorithm);
-        $jwk = $algorithmInstance instanceof MacAlgorithm
-            ? JWKFactory::createFromSecret($secret)
-            : JWKFactory::createFromKey($secret, '' === $passphrase ? null : $passphrase);
+        $password = '' === $passphrase ? null : $passphrase;
+        // web-token 4.3 deprecates the static JWKFactory methods in favor of instance ones
+        if (method_exists(JWKFactory::class, 'fromSecret')) { // @phpstan-ignore function.alreadyNarrowedType (false before web-token 4.3)
+            $jwkFactory = new JWKFactory();
+            $jwk = $algorithmInstance instanceof MacAlgorithm ? $jwkFactory->fromSecret($secret) : $jwkFactory->fromKey($secret, $password);
+        } else {
+            $jwk = $algorithmInstance instanceof MacAlgorithm ? JWKFactory::createFromSecret($secret) : JWKFactory::createFromKey($secret, $password);
+        }
 
         return new self(self::createJwsBuilder($algorithmInstance), $jwk, $algorithm, $jwtLifetime);
     }
@@ -161,7 +166,7 @@ final class WebTokenFactory implements TokenFactoryInterface
             }
         }
 
-        $jws = $this->jwsBuilder->create()
+        $jws = $this->jwsBuilder
             ->withPayload(json_encode($additionalClaims, \JSON_THROW_ON_ERROR))
             ->addSignature($this->jwk, ['alg' => $this->algorithm, 'typ' => 'at+jwt'])
             ->build();
