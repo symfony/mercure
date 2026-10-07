@@ -106,12 +106,12 @@ class HubTest extends TestCase
         $hub->publish(new Update('https://demo.mercure.rocks/demo/books/1.jsonld', 'Hi from Symfony!'));
     }
 
-    public function testDefaultsToLegacyProtocolVersionAndCookieName()
+    public function testDefaultsToV1ProtocolVersionAndCookieName()
     {
         $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT));
 
-        $this->assertSame(ProtocolVersion::Legacy, $hub->getProtocolVersion());
-        $this->assertSame('mercureAuthorization', $hub->getCookieName());
+        $this->assertSame(ProtocolVersion::V1, $hub->getProtocolVersion());
+        $this->assertSame('__Secure-mercure_access_token', $hub->getCookieName());
     }
 
     public function testExplicitProtocolVersionAndCustomCookieName()
@@ -122,10 +122,10 @@ class HubTest extends TestCase
         $this->assertSame('custom_cookie', $hub->getCookieName());
     }
 
-    public function testDefaultCookieNameForV1Protocol()
+    public function testDefaultCookieNameForLegacyProtocol()
     {
-        $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT), protocolVersion: ProtocolVersion::V1);
+        $hub = new Hub(self::URL, new StaticTokenProvider(self::JWT), protocolVersion: ProtocolVersion::Legacy);
 
-        $this->assertSame('__Secure-mercure_access_token', $hub->getCookieName());
+        $this->assertSame('mercureAuthorization', $hub->getCookieName());
     }
 }

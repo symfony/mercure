@@ -4,6 +4,7 @@ CHANGELOG
 0.9.0
 -----
 
+* Default to the Mercure protocol 1.0 now that Mercure hub 1.0 is stable: `Hub`, `FrankenPhpHub`, `MockHub` and `Jwt\LcobucciFactory` use `ProtocolVersion::V1` unless `$protocolVersion` is set; pass `ProtocolVersion::Legacy` to keep talking to a 0.x hub. This also changes the default cookie name to `__Secure-mercure_access_token`, the Twig `mercure()` query parameter to `match`, and the `LcobucciFactory` claims to `authorization_details` (which requires the `iss`, `aud`, `sub` and `client_id` claims)
 * Add the fully-specified `Ed25519` algorithm to `Symfony\Component\Mercure\Jwt\WebTokenFactory` (requires `web-token/jwt-library` 4.3, which deprecates signing with the polymorphic `EdDSA` algorithm)
 
 0.8.0

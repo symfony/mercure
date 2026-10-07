@@ -56,7 +56,7 @@ final class LcobucciFactory implements TokenFactoryInterface
         string $algorithm = 'hmac.sha256',
         ?int $jwtLifetime = 0,
         string $passphrase = '',
-        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::V1,
     ) {
         if (!class_exists(Key\InMemory::class)) {
             throw new \LogicException('You cannot use "Symfony\Component\Mercure\Token\LcobucciFactory" as the "lcobucci/jwt" package is not installed. Try running "composer require lcobucci/jwt".');

@@ -35,7 +35,7 @@ final class MockHub implements HubInterface
         private readonly ?TokenFactoryInterface $jwtFactory = null,
         private readonly ?string $publicUrl = null,
         ?string $cookieName = null,
-        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::Legacy,
+        private readonly ProtocolVersion $protocolVersion = ProtocolVersion::V1,
     ) {
         $this->publisher = $publisher;
         $this->cookieName = $cookieName ?? $protocolVersion->getDefaultCookieName();
