@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Symfony\Component\Mercure;
 
+use Symfony\Component\Mercure\Exception\RuntimeException;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 
 /**
@@ -55,6 +56,12 @@ final class FrankenPhpHub implements HubInterface
 
     public function publish(Update $update): string
     {
+        // checked here rather than in the constructor: subscribing (public URL, cookie, token
+        // factory) works anywhere, e.g. under the CLI, where FrankenPHP doesn't define the function
+        if (!\function_exists('mercure_publish')) {
+            throw new RuntimeException('The mercure_publish() function is not available: publish from a request served by FrankenPHP with its "mercure" directive enabled, or use Hub to publish to a hub URL.');
+        }
+
         return mercure_publish(
             $update->getTopics(),
             $update->getData(),
