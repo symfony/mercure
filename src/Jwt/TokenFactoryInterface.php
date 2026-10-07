@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Symfony\Component\Mercure\Jwt;
 
 /**
+ * Creates the JWTs that allow publishing or subscribing to topics.
+ *
  * @author Saif Eddin Gmati <azjezz@protonmail.com>
  *
  * @experimental

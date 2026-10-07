@@ -15,6 +15,9 @@ namespace Symfony\Component\Mercure;
 
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 
+/**
+ * Returns the configured Mercure hubs by name.
+ */
 final class HubRegistry
 {
     private $defaultHub;
