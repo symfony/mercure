@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.9.0
+-----
+
+* Add the fully-specified `Ed25519` algorithm to `Symfony\Component\Mercure\Jwt\WebTokenFactory` (requires `web-token/jwt-library` 4.3, which deprecates signing with the polymorphic `EdDSA` algorithm)
+
 0.8.0
 -----
 

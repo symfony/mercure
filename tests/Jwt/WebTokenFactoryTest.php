@@ -15,6 +15,7 @@ namespace Symfony\Component\Mercure\Tests\Jwt;
 
 use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
+use Jose\Component\Signature\Algorithm\Ed25519;
 use Jose\Component\Signature\Algorithm\HS256;
 use Jose\Component\Signature\Algorithm\HS384;
 use Jose\Component\Signature\JWSBuilder;
@@ -76,7 +77,7 @@ MC4CAQAwBQYDK2VwBCIEIC2sHlY290BGA/Cr3ASUox+INF9KzT10bd96xOo5UPir
     public function testInvalidAlgorithm()
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Unsupported algorithm "md5", expected one of "HS256", "HS384", "HS512", "ES256", "ES384", "ES512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "EdDSA".');
+        $this->expectExceptionMessage('Unsupported algorithm "md5", expected one of "HS256", "HS384", "HS512", "ES256", "ES384", "ES512", "RS256", "RS384", "RS512", "PS256", "PS384", "PS512", "EdDSA", "Ed25519".');
 
         WebTokenFactory::fromSecret(self::SECRET, 'md5');
     }
@@ -184,6 +185,32 @@ MC4CAQAwBQYDK2VwBCIEIC2sHlY290BGA/Cr3ASUox+INF9KzT10bd96xOo5UPir
 
         $this->assertSame('EdDSA', $header['alg']);
         $this->assertSame(['subscribe'], $payload['authorization_details'][0]['actions']);
+    }
+
+    public function testSupportsEd25519Algorithm()
+    {
+        if (!class_exists(Ed25519::class)) {
+            $this->markTestSkipped('requires web-token/jwt-library 4.3.');
+        }
+
+        $factory = WebTokenFactory::fromSecret(self::PRIVATE_ED25519_KEY, 'Ed25519');
+
+        [$header, $payload] = $this->decode($factory->create([new Grant([Grant::ACTION_SUBSCRIBE], ['a'])], self::REQUIRED_CLAIMS));
+
+        $this->assertSame('Ed25519', $header['alg']);
+        $this->assertSame(['subscribe'], $payload['authorization_details'][0]['actions']);
+    }
+
+    public function testEd25519RequiresWebToken43()
+    {
+        if (class_exists(Ed25519::class)) {
+            $this->markTestSkipped('requires web-token/jwt-library < 4.3.');
+        }
+
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('The "Ed25519" algorithm is not supported by the installed version of "web-token/jwt-library".');
+
+        WebTokenFactory::fromSecret(self::PRIVATE_ED25519_KEY, 'Ed25519');
     }
 
     public function testAcceptsAPreconfiguredJwsBuilder()

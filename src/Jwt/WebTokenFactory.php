@@ -18,6 +18,7 @@ use Jose\Component\Core\AlgorithmManager;
 use Jose\Component\Core\JWK;
 use Jose\Component\Core\JWKSet;
 use Jose\Component\KeyManagement\JWKFactory;
+use Jose\Component\Signature\Algorithm\Ed25519;
 use Jose\Component\Signature\Algorithm\EdDSA;
 use Jose\Component\Signature\Algorithm\ES256;
 use Jose\Component\Signature\Algorithm\ES384;
@@ -55,6 +56,7 @@ final class WebTokenFactory implements TokenFactoryInterface
      * Algorithms {@see self::fromSecret()} and {@see self::fromJwksUri()} are allowed to instantiate,
      * keyed by JWA name. An explicit allowlist rather than a namespace lookup, so that a configuration
      * value can never reach "Jose\Component\Signature\Algorithm\None" and mint an unsigned token.
+     * "Ed25519" requires "web-token/jwt-library" 4.3 or later.
      *
      * @var array<string, class-string<Algorithm>>
      */
@@ -72,6 +74,7 @@ final class WebTokenFactory implements TokenFactoryInterface
         'PS384' => PS384::class,
         'PS512' => PS512::class,
         'EdDSA' => EdDSA::class,
+        'Ed25519' => Ed25519::class,
     ];
 
     private readonly ?int $jwtLifetime;
@@ -185,6 +188,9 @@ final class WebTokenFactory implements TokenFactoryInterface
         }
 
         $algorithmClass = self::SIGN_ALGORITHMS[$algorithm];
+        if (!class_exists($algorithmClass)) {
+            throw new \LogicException(\sprintf('The "%s" algorithm is not supported by the installed version of "web-token/jwt-library". Try running "composer update web-token/jwt-library".', $algorithm));
+        }
 
         return new $algorithmClass();
     }
