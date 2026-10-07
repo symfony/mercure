@@ -12,7 +12,7 @@ Getting Started
 ---------------
 
 ```
-$ composer require symfony/mercure lcobucci/jwt
+composer require symfony/mercure lcobucci/jwt
 ```
 
 ```php
