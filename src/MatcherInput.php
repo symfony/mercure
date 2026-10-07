@@ -106,7 +106,7 @@ final class MatcherInput
         }
 
         return array_map(
-            static fn (array $item) => new Grant($item['actions'] ?? [Grant::ACTION_SUBSCRIBE], $item['topics'] ?? [], $item['payload'] ?? null),
+            static fn (array $item): Grant => new Grant($item['actions'] ?? [Grant::ACTION_SUBSCRIBE], $item['topics'] ?? [], $item['payload'] ?? null),
             $grants
         );
     }

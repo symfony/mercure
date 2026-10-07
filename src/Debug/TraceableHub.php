@@ -34,8 +34,8 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
     private array $messages = [];
 
     public function __construct(
-        private HubInterface $hub,
-        private Stopwatch $stopwatch,
+        private readonly HubInterface $hub,
+        private readonly Stopwatch $stopwatch,
     ) {
     }
 
@@ -79,10 +79,10 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
 
     public function publish(Update $update): string
     {
-        $this->stopwatch->start(__CLASS__);
+        $this->stopwatch->start(self::class);
         $content = $this->hub->publish($update);
 
-        $e = $this->stopwatch->stop(__CLASS__);
+        $e = $this->stopwatch->stop(self::class);
         $this->messages[] = [
             'object' => $update,
             'duration' => $e->getDuration(),
@@ -109,15 +109,11 @@ final class TraceableHub implements RemoteHubInterface, ResetInterface
 
     public function getDuration(): float
     {
-        return array_sum(array_map(static function ($a) {
-            return $a['duration'];
-        }, $this->messages));
+        return array_sum(array_map(static fn (array $a) => $a['duration'], $this->messages));
     }
 
     public function getMemory(): int
     {
-        return (int) array_sum(array_map(static function ($a) {
-            return $a['memory'];
-        }, $this->messages));
+        return (int) array_sum(array_map(static fn (array $a) => $a['memory'], $this->messages));
     }
 }

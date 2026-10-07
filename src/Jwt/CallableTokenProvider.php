@@ -20,14 +20,14 @@ namespace Symfony\Component\Mercure\Jwt;
  */
 final class CallableTokenProvider implements TokenProviderInterface
 {
-    private $provider;
+    private readonly \Closure $provider;
 
     /**
      * @param (callable(): string) $provider
      */
     public function __construct(callable $provider)
     {
-        $this->provider = $provider;
+        $this->provider = $provider(...);
     }
 
     public function getJwt(): string

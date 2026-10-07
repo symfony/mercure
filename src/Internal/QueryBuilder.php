@@ -42,7 +42,7 @@ final class QueryBuilder
         return implode('&', $parts);
     }
 
-    private static function encode($key, $value): string
+    private static function encode(int|string $key, string|int $value): string
     {
         // All Mercure's keys are safe, so don't need to be encoded, but it's not a generic solution
         return \sprintf('%s=%s', $key, urlencode((string) $value));

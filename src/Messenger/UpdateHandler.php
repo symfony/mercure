@@ -28,7 +28,7 @@ final class UpdateHandler
     {
     }
 
-    public function __invoke(Update $update)
+    public function __invoke(Update $update): string
     {
         if ($this->hub instanceof HubInterface) {
             return $this->hub->publish($update);

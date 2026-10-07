@@ -28,7 +28,7 @@ final class DefaultClaimsTokenFactoryTest extends TestCase
         $decorated
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo($grants), ['iss' => 'https://example.com', 'sub' => 'default-sub'])
+            ->with($grants, ['iss' => 'https://example.com', 'sub' => 'default-sub'])
         ;
 
         $factory = new DefaultClaimsTokenFactory($decorated, ['iss' => 'https://example.com', 'sub' => 'default-sub']);
@@ -43,7 +43,7 @@ final class DefaultClaimsTokenFactoryTest extends TestCase
         $decorated
             ->expects($this->once())
             ->method('create')
-            ->with($this->equalTo($grants), ['sub' => 'per-request-sub', 'iss' => 'https://example.com'])
+            ->with($grants, ['sub' => 'per-request-sub', 'iss' => 'https://example.com'])
         ;
 
         $factory = new DefaultClaimsTokenFactory($decorated, ['iss' => 'https://example.com', 'sub' => 'default-sub']);

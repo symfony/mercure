@@ -20,16 +20,11 @@ use Symfony\Component\Mercure\Exception\InvalidArgumentException;
  */
 final class HubRegistry
 {
-    private $defaultHub;
-    private $hubs;
-
     /**
      * @param array<string, HubInterface> $hubs An array of hub instances, where the keys are the names
      */
-    public function __construct(HubInterface $defaultHub, array $hubs = [])
+    public function __construct(private readonly HubInterface $defaultHub, private array $hubs = [])
     {
-        $this->defaultHub = $defaultHub;
-        $this->hubs = $hubs;
     }
 
     public function getHub(?string $name = null): HubInterface
