@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.10.0
+------
+
+* `Authorization::setCookie()` (and therefore the Twig `mercure()` function) can now be called several times for the same hub during the same request: the grants of every call are merged into a single subscriber authorization cookie (topics are added to an existing grant with the same actions and payload, other grants are appended), and so are the additional claims, instead of throwing a `RuntimeException`. The earliest `exp` is kept; giving any other claim two different values still throws, and so does mixing `setCookie()` and `clearCookie()` for the same hub
+* Fix the doubled quotes around the hub name in the exception thrown when the subscriber authorization cookie of a named hub has already been set
+
 0.9.0
 -----
 

@@ -21,6 +21,7 @@ use Symfony\Component\Mercure\Authorization;
 use Symfony\Component\Mercure\Exception\InvalidArgumentException;
 use Symfony\Component\Mercure\HubRegistry;
 use Symfony\Component\Mercure\Jwt\Grant;
+use Symfony\Component\Mercure\Jwt\LcobucciFactory;
 use Symfony\Component\Mercure\Jwt\StaticTokenProvider;
 use Symfony\Component\Mercure\Jwt\TokenFactoryInterface;
 use Symfony\Component\Mercure\MockHub;
@@ -52,6 +53,37 @@ final class MercureExtensionTest extends TestCase
 
         $this->assertSame('https://example.com/.well-known/mercure?match=https%3A%2F%2Ffoo%2Fbar', $url);
         $this->assertInstanceOf(Cookie::class, $request->attributes->get('_mercure_authorization_cookies')['']);
+    }
+
+    public function testMercureCalledTwiceMergesTheAuthorizationCookie()
+    {
+        if (!class_exists(\Lcobucci\JWT\Signer\Key\InMemory::class)) {
+            $this->markTestSkipped('"lcobucci/jwt" is not installed');
+        }
+
+        $registry = new HubRegistry(new MockHub(
+            'https://example.com/.well-known/mercure',
+            new StaticTokenProvider('foo.bar.baz'),
+            static fn (Update $u): string => 'dummy',
+            new LcobucciFactory('looooooooooooongenoughtestsecret', 'hmac.sha256', 3600, protocolVersion: ProtocolVersion::V1)
+        ));
+
+        $requestStack = new RequestStack();
+        $request = Request::create('https://example.com/');
+        $requestStack->push($request);
+
+        $extension = new MercureExtension($registry, new Authorization($registry), $requestStack);
+        $claims = ['iss' => 'https://example.com', 'aud' => 'https://example.com', 'sub' => 'urn:uuid:1', 'client_id' => 'https://example.com'];
+
+        $extension->mercure('notifications', ['subscribe' => 'notifications', 'additionalClaims' => $claims]);
+        $extension->mercure('books/1', ['subscribe' => ['books/1'], 'additionalClaims' => $claims]);
+
+        $cookie = $request->attributes->get('_mercure_authorization_cookies')[''];
+        $payload = json_decode(base64_decode(strtr(explode('.', $cookie->getValue())[1], '-_', '+/'), true), true);
+
+        $this->assertCount(1, $payload['authorization_details']);
+        $this->assertSame(['subscribe'], $payload['authorization_details'][0]['actions']);
+        $this->assertSame([['match' => 'notifications'], ['match' => 'books/1']], $payload['authorization_details'][0]['topics']);
     }
 
     public function testMercureLastEventId()

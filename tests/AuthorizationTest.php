@@ -292,6 +292,213 @@ final class AuthorizationTest extends TestCase
         $authorization->clearCookie($request);
     }
 
+    public function testSetCookieTwiceMergesGrants()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+        $request = Request::create('https://example.com');
+
+        $authorization->setCookie($request, ['notifications', 'shared']);
+        $authorization->setCookie($request, [
+            new Grant([Grant::ACTION_SUBSCRIBE], ['exact' => ['shared', 'books/1'], 'urlpattern' => ['/books/*']]),
+            new Grant([Grant::ACTION_SUBSCRIBE], ['books/2'], 'payload'),
+            new Grant([Grant::ACTION_PUBLISH], ['books/1']),
+        ]);
+
+        $this->assertCount(2, $tokenFactory->calls);
+        $this->assertEquals([
+            new Grant([Grant::ACTION_SUBSCRIBE], ['exact' => ['notifications', 'shared', 'books/1'], 'urlpattern' => ['/books/*']]),
+            new Grant([Grant::ACTION_SUBSCRIBE], ['books/2'], 'payload'),
+            new Grant([Grant::ACTION_PUBLISH], ['books/1']),
+        ], $tokenFactory->calls[1]['grants']);
+
+        $cookies = $request->attributes->get('_mercure_authorization_cookies');
+        $this->assertCount(1, $cookies);
+        $this->assertSame('token-2', $cookies['']->getValue());
+    }
+
+    public function testSetCookieTwiceMergesAdditionalClaims()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+        $request = Request::create('https://example.com');
+
+        $authorization->setCookie($request, ['foo'], additionalClaims: ['x-foo' => 'foo', 'x-shared' => ['a' => 1]]);
+        $authorization->setCookie($request, ['bar'], additionalClaims: ['x-bar' => 'bar', 'x-shared' => ['a' => 1]]);
+
+        $claims = $tokenFactory->calls[1]['additionalClaims'];
+        $this->assertSame('foo', $claims['x-foo']);
+        $this->assertSame('bar', $claims['x-bar']);
+        $this->assertSame(['a' => 1], $claims['x-shared']);
+        $this->assertArrayHasKey('exp', $claims);
+    }
+
+    public function testSetCookieTwiceKeepsAnExplicitExpiration()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+        $request = Request::create('https://example.com');
+        $expiration = new \DateTimeImmutable('+1 day');
+
+        $authorization->setCookie($request, ['foo'], additionalClaims: ['exp' => $expiration]);
+        $authorization->setCookie($request, ['bar'], additionalClaims: ['exp' => new \DateTimeImmutable('@'.$expiration->format('U.u'))]);
+        $authorization->setCookie($request, ['baz']);
+
+        $this->assertSame($expiration, $tokenFactory->calls[2]['additionalClaims']['exp']);
+        $this->assertSame($expiration->getTimestamp(), $request->attributes->get('_mercure_authorization_cookies')['']->getExpiresTime());
+    }
+
+    public function testSetCookieTwiceKeepsTheEarliestExpiration()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+        $request = Request::create('https://example.com');
+        $earliest = new \DateTimeImmutable('+1 hour');
+
+        $authorization->setCookie($request, ['foo'], additionalClaims: ['exp' => new \DateTimeImmutable('+2 hours')]);
+        $authorization->setCookie($request, ['bar'], additionalClaims: ['exp' => $earliest]);
+        $authorization->setCookie($request, ['baz'], additionalClaims: ['exp' => new \DateTimeImmutable('+1 hour')]);
+
+        $this->assertSame($earliest, $tokenFactory->calls[2]['additionalClaims']['exp']);
+    }
+
+    public function testSetCookieTwiceKeepsTheEarliestExpirationTimestamp()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+        $request = Request::create('https://example.com');
+
+        $authorization->setCookie($request, ['foo'], additionalClaims: ['exp' => 1_900_000_001]);
+        $authorization->setCookie($request, ['bar'], additionalClaims: ['exp' => 1_900_000_000]);
+
+        $this->assertSame(1_900_000_000, $tokenFactory->calls[1]['additionalClaims']['exp']);
+    }
+
+    public function testSetCookieTwiceWithExpirationsOfDifferentTypesThrows()
+    {
+        $authorization = new Authorization($this->createRegistry($this->createRecordingTokenFactory()));
+        $request = Request::create('https://example.com');
+        $authorization->setCookie($request, ['foo'], additionalClaims: ['exp' => new \DateTimeImmutable('+1 hour')]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('different value for the "exp" claim');
+
+        $authorization->setCookie($request, ['bar'], additionalClaims: ['exp' => 1_900_000_000]);
+    }
+
+    public function testSetCookieTwiceWithConflictingAdditionalClaimsThrows()
+    {
+        $authorization = new Authorization($this->createRegistry($this->createRecordingTokenFactory()));
+        $request = Request::create('https://example.com');
+        $authorization->setCookie($request, ['foo'], additionalClaims: ['sub' => 'alice']);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The subscriber authorization cookie for the default hub has already been set with a different value for the "sub" claim during the same request.');
+
+        $authorization->setCookie($request, ['bar'], additionalClaims: ['sub' => 'bob']);
+    }
+
+    public function testSetCookieForDifferentHubsDoesNotMerge()
+    {
+        $defaultFactory = $this->createRecordingTokenFactory();
+        $otherFactory = $this->createRecordingTokenFactory();
+        $registry = new HubRegistry(
+            $this->createHub($defaultFactory),
+            ['default' => $this->createHub($defaultFactory), 'other' => $this->createHub($otherFactory, 'https://other.example.com/.well-known/mercure')],
+        );
+        $authorization = new Authorization($registry);
+        $request = Request::create('https://example.com');
+
+        $authorization->setCookie($request, ['foo']);
+        $authorization->setCookie($request, ['bar'], hub: 'other');
+
+        $this->assertEquals([new Grant([Grant::ACTION_SUBSCRIBE], ['foo'])], $defaultFactory->calls[0]['grants']);
+        $this->assertEquals([new Grant([Grant::ACTION_SUBSCRIBE], ['bar'])], $otherFactory->calls[0]['grants']);
+        $this->assertCount(2, $request->attributes->get('_mercure_authorization_cookies'));
+    }
+
+    public function testSetCookieForTheDefaultHubAndForItsNameMerges()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $hub = $this->createHub($tokenFactory);
+        $authorization = new Authorization(new HubRegistry($hub, ['default' => $hub]));
+        $request = Request::create('https://example.com');
+
+        $authorization->setCookie($request, ['foo']);
+        $authorization->setCookie($request, ['bar'], hub: 'default');
+
+        $this->assertEquals([new Grant([Grant::ACTION_SUBSCRIBE], ['exact' => ['foo', 'bar']])], $tokenFactory->calls[1]['grants']);
+        $cookies = $request->attributes->get('_mercure_authorization_cookies');
+        $this->assertSame([''], array_keys($cookies));
+        $this->assertSame('token-2', $cookies['']->getValue());
+    }
+
+    public function testSetCookieTwiceDoesNotMergeTheGrantsOfASingleCall()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+        $request = Request::create('https://example.com');
+
+        $authorization->setCookie($request, [new Grant([Grant::ACTION_SUBSCRIBE], ['a']), new Grant([Grant::ACTION_SUBSCRIBE], ['b'])]);
+        $authorization->setCookie($request, [new Grant([Grant::ACTION_PUBLISH], ['x']), new Grant([Grant::ACTION_PUBLISH], ['y'])]);
+
+        $this->assertEquals([
+            new Grant([Grant::ACTION_SUBSCRIBE], ['a']),
+            new Grant([Grant::ACTION_SUBSCRIBE], ['b']),
+            new Grant([Grant::ACTION_PUBLISH], ['x']),
+            new Grant([Grant::ACTION_PUBLISH], ['y']),
+        ], $tokenFactory->calls[1]['grants']);
+    }
+
+    public function testSetCookieTwiceOnDifferentRequestsDoesNotMerge()
+    {
+        $tokenFactory = $this->createRecordingTokenFactory();
+        $authorization = new Authorization($this->createRegistry($tokenFactory));
+
+        $authorization->setCookie(Request::create('https://example.com'), ['foo']);
+        $authorization->setCookie(Request::create('https://example.com'), ['bar']);
+
+        $this->assertEquals([new Grant([Grant::ACTION_SUBSCRIBE], ['bar'])], $tokenFactory->calls[1]['grants']);
+    }
+
+    public function testSetCookieAfterClearCookieThrows()
+    {
+        $authorization = new Authorization($this->createRegistry($this->createRecordingTokenFactory()));
+        $request = Request::create('https://example.com');
+        $authorization->clearCookie($request);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The subscriber authorization cookie for the default hub has already been set. You cannot set it two times during the same request.');
+
+        $authorization->setCookie($request, ['foo']);
+    }
+
+    public function testSetCookieAfterClearCookieOnANamedHubThrows()
+    {
+        $hub = $this->createHub($this->createRecordingTokenFactory());
+        $authorization = new Authorization(new HubRegistry($hub, ['foo' => $hub]));
+        $request = Request::create('https://example.com');
+        $authorization->clearCookie($request, 'foo');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The subscriber authorization cookie for the "foo" hub has already been set. You cannot set it two times during the same request.');
+
+        $authorization->setCookie($request, ['bar'], hub: 'foo');
+    }
+
+    public function testSetCookieDoesNotMergeIntoACookieItDidNotSet()
+    {
+        $authorization = new Authorization($this->createRegistry($this->createRecordingTokenFactory()));
+        $request = Request::create('https://example.com');
+        $authorization->setCookie($request, ['foo']);
+        $request->attributes->set('_mercure_authorization_cookies', ['' => Cookie::create('mercureAuthorization', 'external')]);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('The subscriber authorization cookie for the default hub has already been set. You cannot set it two times during the same request.');
+
+        $authorization->setCookie($request, ['bar']);
+    }
+
     /**
      * @group legacy
      */
@@ -369,5 +576,32 @@ final class AuthorizationTest extends TestCase
 
         $this->assertSame('mercure_access_token', $cookie->getName());
         $this->assertFalse($cookie->isSecure());
+    }
+
+    private function createRegistry(TokenFactoryInterface $tokenFactory): HubRegistry
+    {
+        return new HubRegistry($this->createHub($tokenFactory));
+    }
+
+    private function createHub(TokenFactoryInterface $tokenFactory, string $url = 'https://example.com/.well-known/mercure'): MockHub
+    {
+        return new MockHub($url, new StaticTokenProvider('foo.bar.baz'), static fn (Update $u): string => 'dummy', $tokenFactory, protocolVersion: ProtocolVersion::Legacy);
+    }
+
+    /**
+     * @return TokenFactoryInterface&object{calls: list<array{grants: Grant[], additionalClaims: mixed[]}>}
+     */
+    private function createRecordingTokenFactory(): TokenFactoryInterface
+    {
+        return new class implements TokenFactoryInterface {
+            public array $calls = [];
+
+            public function create(array $grants = [], array $additionalClaims = []): string
+            {
+                $this->calls[] = ['grants' => $grants, 'additionalClaims' => $additionalClaims];
+
+                return 'token-'.\count($this->calls);
+            }
+        };
     }
 }
