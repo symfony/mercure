@@ -393,7 +393,7 @@ final class AuthorizationTest extends TestCase
         $authorization->setCookie($request, ['foo'], additionalClaims: ['sub' => 'alice']);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('The subscriber authorization cookie for the default hub has already been set with a different value for the "sub" claim during the same request.');
+        $this->expectExceptionMessage('The subscriber authorization cookie for the "default" hub has already been set with a different value for the "sub" claim during the same request.');
 
         $authorization->setCookie($request, ['bar'], additionalClaims: ['sub' => 'bob']);
     }
@@ -468,7 +468,7 @@ final class AuthorizationTest extends TestCase
         $authorization->clearCookie($request);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('The subscriber authorization cookie for the default hub has already been set. You cannot set it two times during the same request.');
+        $this->expectExceptionMessage('The subscriber authorization cookie for the "default" hub has already been set. You cannot set it two times during the same request.');
 
         $authorization->setCookie($request, ['foo']);
     }
@@ -494,7 +494,7 @@ final class AuthorizationTest extends TestCase
         $request->attributes->set('_mercure_authorization_cookies', ['' => Cookie::create('mercureAuthorization', 'external')]);
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('The subscriber authorization cookie for the default hub has already been set. You cannot set it two times during the same request.');
+        $this->expectExceptionMessage('The subscriber authorization cookie for the "default" hub has already been set. You cannot set it two times during the same request.');
 
         $authorization->setCookie($request, ['bar']);
     }

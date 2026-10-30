@@ -296,8 +296,8 @@ final class Authorization
                 continue;
             }
 
-            if (\array_key_exists($name, $additionalClaims) && $additionalClaims[$name] !== $value && !($additionalClaims[$name] instanceof \DateTimeInterface && $value instanceof \DateTimeInterface && $additionalClaims[$name] == $value)) {
-                throw new RuntimeException(\sprintf('The subscriber authorization cookie for the %s has already been set with a different value for the "%s" claim during the same request.', $hub ? "\"$hub\" hub" : 'default hub', $name));
+            if (\array_key_exists($name, $additionalClaims) && $additionalClaims[$name] !== $value && !($additionalClaims[$name] instanceof \DateTimeInterface && $value instanceof \DateTimeInterface && $additionalClaims[$name]->format('U.u') === $value->format('U.u'))) {
+                throw new RuntimeException(\sprintf('The subscriber authorization cookie for the "%s" hub has already been set with a different value for the "%s" claim during the same request.', $hub ?: 'default', $name));
             }
         }
 
@@ -323,7 +323,7 @@ final class Authorization
 
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
         if (!$replace && \array_key_exists($hub, $cookies)) {
-            $message = \sprintf('The subscriber authorization cookie for the %s has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
+            $message = \sprintf('The subscriber authorization cookie for the "%s" hub has already been set. You cannot set it two times during the same request.', $hub ?: 'default');
             throw new RuntimeException($message);
         }
 
