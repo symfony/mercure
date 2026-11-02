@@ -27,6 +27,13 @@ final class Authorization
     private readonly int $cookieLifetime;
 
     /**
+     * Indexed by hub instance, so that a hub reached both as the default hub and by its name gets a single cookie.
+     *
+     * @var \WeakMap<Request, array<int, array{key: string, grants: Grant[], additionalClaims: array<string, mixed>, cookie: Cookie}>>
+     */
+    private readonly \WeakMap $pendingCookies;
+
+    /**
      * @param int|null                $cookieLifetime in seconds, 0 for the current session, null to default to the value of "session.cookie_lifetime" or 3600 if "session.cookie_lifetime" is set to 0. The "exp" field of the JWT will be set accordingly if not set explicitly, defaults to 1h in case of session cookies.
      * @param Cookie::SAMESITE_*|null $cookieSameSite
      */
@@ -36,10 +43,15 @@ final class Authorization
         private readonly ?string $cookieSameSite = Cookie::SAMESITE_STRICT,
     ) {
         $this->cookieLifetime = $cookieLifetime ?? (int) \ini_get('session.cookie_lifetime');
+        $this->pendingCookies = new \WeakMap();
     }
 
     /**
      * Sets the subscriber authorization cookie for the given hub.
+     *
+     * When called several times for the same hub during the same request (e.g. by a layout and by a page that
+     * each render their own private stream), the grants of every call are merged into a single cookie, and so
+     * are their additional claims, as long as no claim but "exp" (the earliest is kept) is given two different values.
      *
      * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants           a
      *                                                                                                                                                    list of Grant instances, or, as a shorthand, a bare topic, a flat topic
@@ -54,7 +66,25 @@ final class Authorization
      */
     public function setCookie(Request $request, array|string|null $grants = [], string|array|null $publish = null, array $additionalClaims = [], ?string $hub = null): void
     {
-        $this->updateCookies($request, $hub, $this->createCookie($request, $grants, $publish, $additionalClaims, $hub));
+        $grants = $this->normalizeGrants($grants, $publish);
+        $hubId = spl_object_id($this->registry->getHub($hub));
+        $pendingCookies = $this->pendingCookies[$request] ?? [];
+        $pending = $pendingCookies[$hubId] ?? null;
+        $key = (string) $hub;
+        $replace = false;
+
+        if (null !== $pending && ($request->attributes->get('_mercure_authorization_cookies', [])[$pending['key']] ?? null) === $pending['cookie']) {
+            $grants = self::mergeGrants($pending['grants'], $grants);
+            $additionalClaims = self::mergeAdditionalClaims($pending['additionalClaims'], $additionalClaims, $hub);
+            $key = $pending['key'];
+            $replace = true;
+        }
+
+        $cookie = $this->createCookie($request, $grants, null, $additionalClaims, $hub);
+        $this->updateCookies($request, $key, $cookie, $replace);
+
+        $pendingCookies[$hubId] = ['key' => $key, 'grants' => $grants, 'additionalClaims' => $additionalClaims, 'cookie' => $cookie];
+        $this->pendingCookies[$request] = $pendingCookies;
     }
 
     /**
@@ -99,14 +129,7 @@ final class Authorization
             $additionalClaims['exp'] = new \DateTimeImmutable(0 === $cookieLifetime ? '+1 hour' : "+{$cookieLifetime} seconds");
         }
 
-        if (null === $grants) {
-            trigger_deprecation('symfony/mercure', '0.8', 'Passing "null" for argument "$grants" of "%s()" is deprecated, pass "[]" instead.', __METHOD__);
-        }
-        $grants = MatcherInput::normalizeGrants($grants);
-        if (null !== $publish) {
-            trigger_deprecation('symfony/mercure', '0.8', 'Passing a non-null value for argument "$publish" of "%s()" is deprecated, add a Grant with Grant::ACTION_PUBLISH to "$grants" instead.', __METHOD__);
-            $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $publish);
-        }
+        $grants = $this->normalizeGrants($grants, $publish);
 
         $token = $tokenFactory->create($grants, $additionalClaims);
         $url = $hubInstance->getPublicUrl();
@@ -205,13 +228,102 @@ final class Authorization
         throw new RuntimeException(\sprintf('Unable to create authorization cookie for a hub on the different second-level domain "%s".', $cookieDomain));
     }
 
-    private function updateCookies(Request $request, ?string $hub, Cookie $cookie): void
+    /**
+     * @param Grant[]|array<int, string|array{actions?: string[], topics?: mixed, payload?: mixed}>|array<string, string[]>|string|null $grants
+     * @param string[]|string|null                                                                                                      $publish
+     *
+     * @return Grant[]
+     */
+    private function normalizeGrants(array|string|null $grants, string|array|null $publish): array
+    {
+        if (null === $grants) {
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing "null" for argument "$grants" of "%s()" is deprecated, pass "[]" instead.', self::class.'::createCookie');
+        }
+        $grants = MatcherInput::normalizeGrants($grants);
+        if (null !== $publish) {
+            trigger_deprecation('symfony/mercure', '0.8', 'Passing a non-null value for argument "$publish" of "%s()" is deprecated, add a Grant with Grant::ACTION_PUBLISH to "$grants" instead.', self::class.'::createCookie');
+            $grants[] = new Grant([Grant::ACTION_PUBLISH], (array) $publish);
+        }
+
+        return $grants;
+    }
+
+    /**
+     * The grants of a single call are never merged together, so the result doesn't depend on the order of the calls.
+     *
+     * @param Grant[] $grants
+     * @param Grant[] $newGrants
+     *
+     * @return Grant[]
+     */
+    private static function mergeGrants(array $grants, array $newGrants): array
+    {
+        $previousCount = \count($grants);
+        foreach ($newGrants as $newGrant) {
+            for ($i = 0; $i < $previousCount; ++$i) {
+                $grant = $grants[$i];
+                if ($grant->actions === $newGrant->actions && $grant->payload === $newGrant->payload) {
+                    $topics = MatcherInput::normalize($grant->topics);
+                    foreach (MatcherInput::normalize($newGrant->topics) as $matcherType => $patterns) {
+                        $topics[$matcherType] = array_values(array_unique([...$topics[$matcherType] ?? [], ...$patterns]));
+                    }
+                    $grants[$i] = new Grant($grant->actions, $topics, $grant->payload);
+
+                    continue 2;
+                }
+            }
+
+            $grants[] = $newGrant;
+        }
+
+        return $grants;
+    }
+
+    /**
+     * Independent calls computing a relative "exp" (e.g. "+1 hour") never get the exact same time, so the earliest one is kept.
+     *
+     * @param array<string, mixed> $additionalClaims
+     * @param array<string, mixed> $newAdditionalClaims
+     *
+     * @return array<string, mixed>
+     */
+    private static function mergeAdditionalClaims(array $additionalClaims, array $newAdditionalClaims, ?string $hub): array
+    {
+        foreach ($newAdditionalClaims as $name => $value) {
+            if ('exp' === $name && null !== $earliest = self::earliestExpiration($additionalClaims['exp'] ?? null, $value)) {
+                $additionalClaims['exp'] = $earliest;
+
+                continue;
+            }
+
+            if (\array_key_exists($name, $additionalClaims) && $additionalClaims[$name] !== $value && !($additionalClaims[$name] instanceof \DateTimeInterface && $value instanceof \DateTimeInterface && $additionalClaims[$name]->format('U.u') === $value->format('U.u'))) {
+                throw new RuntimeException(\sprintf('The subscriber authorization cookie for the "%s" hub has already been set with a different value for the "%s" claim during the same request.', $hub ?: 'default', $name));
+            }
+        }
+
+        return $additionalClaims + $newAdditionalClaims;
+    }
+
+    private static function earliestExpiration(mixed $expiration, mixed $newExpiration): \DateTimeInterface|int|float|null
+    {
+        if ($expiration instanceof \DateTimeInterface && $newExpiration instanceof \DateTimeInterface) {
+            return $newExpiration < $expiration ? $newExpiration : $expiration;
+        }
+
+        if ((\is_int($expiration) || \is_float($expiration)) && (\is_int($newExpiration) || \is_float($newExpiration))) {
+            return min($expiration, $newExpiration);
+        }
+
+        return null;
+    }
+
+    private function updateCookies(Request $request, ?string $hub, Cookie $cookie, bool $replace = false): void
     {
         $hub = (string) $hub;
 
         $cookies = $request->attributes->get('_mercure_authorization_cookies', []);
-        if (\array_key_exists($hub, $cookies)) {
-            $message = \sprintf('The subscriber authorization cookie for the "%s" has already been set. You cannot set it two times during the same request.', $hub ? "\"$hub\" hub" : 'default hub');
+        if (!$replace && \array_key_exists($hub, $cookies)) {
+            $message = \sprintf('The subscriber authorization cookie for the "%s" hub has already been set. You cannot set it two times during the same request.', $hub ?: 'default');
             throw new RuntimeException($message);
         }
 
